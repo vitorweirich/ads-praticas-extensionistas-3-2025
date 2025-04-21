@@ -22,4 +22,8 @@ Com os requisitos básicos de:
 
 #### Entidade Relacionamento
 
-![diagrama-rntidade-relacionamento](diagramas/entidade_relacionamento.png)
+![diagrama-entidade-relacionamento](diagramas/entidade_relacionamento.png)
+
+#### Atividade
+
+![diagrama-atividade-login](diagramas/atividade_login.png)
