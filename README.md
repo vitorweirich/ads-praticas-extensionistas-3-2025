@@ -18,7 +18,7 @@ Com os requisitos básicos de:
 2. Um 'portal' para visualizar as campanhas de doação em curso
 3. Um página de transparência (onde está sendo alocados as doações)
 
-### Diagramos
+### Diagramas
 
 #### Entidade Relacionamento
 
@@ -26,4 +26,10 @@ Com os requisitos básicos de:
 
 #### Atividade
 
+##### Realizar login
+
 ![diagrama-atividade-login](diagramas/atividade_login.jpg)
+
+##### Realizar operação
+
+![diagrama-atividade-operacao](diagramas/atividade_operacao.jpg)
