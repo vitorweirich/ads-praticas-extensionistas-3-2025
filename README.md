@@ -2,9 +2,11 @@
 
 ### Participantes
 
-> Luis Carlos Becker
-> Paulo Luis Hammes
-> Vitor Mateus Weirich
+> Luis Carlos Becker (conta.becker@gmail.com)
+
+> Paulo Luis Hammes (paulolb03@gmail.com)
+
+> Vitor Mateus Weirich (weirichvitor@gmail.com)
 
 ### Projeto
 
@@ -15,3 +17,9 @@ Com os requisitos básicos de:
 1. Cadastro de usuários (doadores e admins)
 2. Um 'portal' para visualizar as campanhas de doação em curso
 3. Um página de transparência (onde está sendo alocados as doações)
+
+### Diagramos
+
+#### Entidade Relacionamento
+
+![diagrama-rntidade-relacionamento](diagramas/entidade_relacionamento.png)
