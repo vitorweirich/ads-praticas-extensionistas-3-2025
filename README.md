@@ -33,3 +33,7 @@ Com os requisitos básicos de:
 ##### Realizar operação
 
 ![diagrama-atividade-operacao](diagramas/atividade_operacao.jpg)
+
+#### Diagrama de caso de uso
+
+![diagrama-caso-de-uso](diagramas/caso_de_uso.jpg)
