@@ -26,4 +26,4 @@ Com os requisitos básicos de:
 
 #### Atividade
 
-![diagrama-atividade-login](diagramas/atividade_login.png)
+![diagrama-atividade-login](diagramas/atividade_login.jpg)
