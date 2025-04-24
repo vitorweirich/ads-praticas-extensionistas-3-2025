@@ -37,3 +37,7 @@ Com os requisitos básicos de:
 #### Diagrama de caso de uso
 
 ![diagrama-caso-de-uso](diagramas/caso_de_uso.jpg)
+
+#### Diagrama de classes
+
+![diagrama-de-classes](diagramas/diagrama_classes.png)
