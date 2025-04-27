@@ -18,6 +18,10 @@ Com os requisitos básicos de:
 2. Um 'portal' para visualizar as campanhas de doação em curso
 3. Um página de transparência (onde está sendo alocados as doações)
 
+### Link do gitHub
+
+[ads-praticas-extensionistas-3-2025][https://github.com/vitorweirich/ads-praticas-extensionistas-3-2025]
+
 ### Diagramas
 
 #### Entidade Relacionamento
@@ -41,3 +45,25 @@ Com os requisitos básicos de:
 #### Diagrama de classes
 
 ![diagrama-de-classes](diagramas/diagrama_classes.png)
+
+### Diagramas de sequência
+
+#### Visitante
+
+![diagrama-sequencia-visitante](diagramas/sequencia_visitante.jpeg)
+
+#### Usuario
+
+![diagrama-sequencia-usuario](diagramas/sequencia_usuario.jpeg)
+
+#### Fazer Doação
+
+![diagrama-sequencia-fazer-doacao](diagramas/sequencia_fazer_doacao.jpeg)
+
+#### Tela de Doações
+
+![diagrama-sequencia-tela-doacoes](diagramas/sequencia_tela_doacoes.jpeg)
+
+#### Comentários
+
+![diagrama-sequencia-comentarios](diagramas/sequencia_comentarios.jpeg)
