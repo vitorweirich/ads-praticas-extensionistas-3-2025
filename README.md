@@ -20,7 +20,7 @@ Com os requisitos básicos de:
 
 ### Link do gitHub
 
-[ads-praticas-extensionistas-3-2025][https://github.com/vitorweirich/ads-praticas-extensionistas-3-2025]
+[ads-praticas-extensionistas-3-2025](https://github.com/vitorweirich/ads-praticas-extensionistas-3-2025)
 
 ### Diagramas
 
