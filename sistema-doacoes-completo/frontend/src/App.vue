@@ -97,6 +97,9 @@ import { mapGetters } from "vuex";
 
 export default {
   name: "App",
+  created() {
+    this.$store.dispatch('checkToken');
+  },
   computed: {
     ...mapGetters(["isLoggedIn", "currentUser", "isAdmin"]),
   },

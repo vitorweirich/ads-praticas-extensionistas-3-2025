@@ -1,10 +1,67 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import axios from "axios";
+import router from "../router";
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
+function isTokenExpired(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(window.atob(base64));
+
+    if (!payload.exp) {
+      return false;
+    }
+
+    const expirationDate = new Date(payload.exp * 1000);
+    const currentDate = new Date();
+
+    return currentDate >= expirationDate;
+  } catch (e) {
+    return true;
+  }
+}
+
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      if (isTokenExpired(token)) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        delete axios.defaults.headers.common["Authorization"];
+
+        router.push("/login");
+      } else {
+        config.headers["Authorization"] = "Bearer " + token;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+axios.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error?.response && error?.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      delete axios.defaults.headers.common["Authorization"];
+
+      router.push("/login");
+    }
+    return Promise.reject(error);
+  }
+);
+
+const store = new Vuex.Store({
   state: {
     status: "",
     token: localStorage.getItem("token") || "",
@@ -52,6 +109,16 @@ export default new Vuex.Store({
     },
   },
   actions: {
+    checkToken({ commit }) {
+      const token = localStorage.getItem("token");
+      if (token && isTokenExpired(token)) {
+        commit("logout");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        delete axios.defaults.headers.common["Authorization"];
+      }
+    },
+
     login({ commit }, user) {
       return new Promise((resolve, reject) => {
         commit("auth_request");
@@ -131,3 +198,5 @@ export default new Vuex.Store({
   },
   modules: {},
 });
+
+export default store;
