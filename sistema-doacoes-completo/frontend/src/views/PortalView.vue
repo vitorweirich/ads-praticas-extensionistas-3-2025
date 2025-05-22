@@ -116,7 +116,7 @@ export default {
   computed: {
     ...mapState(["campanhas"]),
     campanhasFiltradas() {
-      return this.campanhas
+      return this.campanhas.campanhas
         .filter((campanha) => campanha.status === "ATIVA")
         .filter((campanha) => {
           if (this.busca) {
