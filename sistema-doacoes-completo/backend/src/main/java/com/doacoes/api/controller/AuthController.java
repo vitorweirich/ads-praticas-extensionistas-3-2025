@@ -78,4 +78,26 @@ public class AuthController {
 
         return ResponseEntity.ok(new MessageResponse("Usuário registrado com sucesso!"));
     }
+    
+    @PostMapping("/cadastro-admin")
+    public ResponseEntity<?> registerAdminUser(@Valid @RequestBody SignupRequest signUpRequest) {
+    	if (usuarioRepository.existsByEmail(signUpRequest.getEmail())) {
+    		return ResponseEntity
+    				.badRequest()
+    				.body(new MessageResponse("Erro: Email já está em uso!"));
+    	}
+    	
+    	Usuario usuario = new Usuario();
+    	usuario.setNome(signUpRequest.getNome());
+    	usuario.setEmail(signUpRequest.getEmail());
+    	usuario.setSenha(encoder.encode(signUpRequest.getSenha()));
+    	usuario.setTipo(Usuario.TipoUsuario.ADMINISTRADOR);
+    	usuario.setEndereco(signUpRequest.getEndereco());
+    	usuario.setTelefone(signUpRequest.getTelefone());
+    	usuario.setCpfCnpj(signUpRequest.getCpfCnpj());
+    	
+    	usuarioRepository.save(usuario);
+    	
+    	return ResponseEntity.ok(new MessageResponse("Usuário registrado com sucesso!"));
+    }
 }

@@ -154,10 +154,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr
-                        v-for="(campanha, index) in campanhas"
-                        :key="campanha.id"
-                      >
+                      <tr v-for="campanha in campanhas" :key="campanha.id">
                         <td>{{ campanha.titulo }}</td>
                         <td>{{ campanha.categoria }}</td>
                         <td>R$ {{ formatarValor(campanha.metaFinanceira) }}</td>
@@ -216,7 +213,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(doacao, index) in doacoes" :key="doacao.id">
+                      <tr v-for="doacao in doacoes" :key="doacao.id">
                         <td>{{ doacao.campanha.titulo }}</td>
                         <td>
                           {{ doacao.doador ? doacao.doador.nome : "Anônimo" }}
@@ -356,10 +353,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr
-                        v-for="(usuario, index) in usuarios"
-                        :key="usuario.id"
-                      >
+                      <tr v-for="usuario in usuarios" :key="usuario.id">
                         <td>{{ usuario.nome }}</td>
                         <td>{{ usuario.email }}</td>
                         <td>{{ usuario.tipo }}</td>
