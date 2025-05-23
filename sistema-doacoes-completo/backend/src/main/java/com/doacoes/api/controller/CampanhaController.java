@@ -3,8 +3,9 @@ package com.doacoes.api.controller;
 import com.doacoes.api.model.Campanha;
 import com.doacoes.api.model.Usuario;
 import com.doacoes.api.repository.CampanhaRepository;
-import com.doacoes.api.payload.response.MessageResponse;
+import com.doacoes.api.repository.UsuarioRepository;
 import com.doacoes.api.security.services.UserDetailsImpl;
+import com.doacoes.api.payload.response.MessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +24,10 @@ public class CampanhaController {
 
     @Autowired
     private CampanhaRepository campanhaRepository;
+    
+    // TODO: Trocar @Autowired por injeção por construtor
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @GetMapping("/publicas")
     public ResponseEntity<List<Campanha>> listarCampanhasPublicas() {
@@ -44,10 +49,12 @@ public class CampanhaController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMINISTRADOR')")
+    // TODO: Criar exception handler para o @Valid (geral)
     public ResponseEntity<?> criarCampanha(@Valid @RequestBody Campanha campanha) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            campanha.setAdministrador((Usuario) authentication.getPrincipal());          
+            UserDetailsImpl admUser = (UserDetailsImpl) authentication.getPrincipal();
+            campanha.setAdministrador(usuarioRepository.getReferenceById(admUser.getId()));          
             Campanha novaCampanha = campanhaRepository.save(campanha);
             return ResponseEntity.ok(novaCampanha);
         } catch (Exception e) {
