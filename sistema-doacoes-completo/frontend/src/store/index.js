@@ -123,7 +123,7 @@ const store = new Vuex.Store({
       return new Promise((resolve, reject) => {
         commit("auth_request");
         axios
-          .post("https://doacoes-api.vitorweirich.com/api/auth/login", user)
+          .post(`${process.env.VUE_APP_API_BASE_URL}/api/auth/login`, user)
           .then((resp) => {
             const token = resp.data.accessToken;
             const user = {
@@ -150,7 +150,7 @@ const store = new Vuex.Store({
       return new Promise((resolve, reject) => {
         commit("auth_request");
         axios
-          .post("https://doacoes-api.vitorweirich.com/api/auth/cadastro", user)
+          .post(`${process.env.VUE_APP_API_BASE_URL}/api/auth/cadastro`, user)
           .then((resp) => {
             resolve(resp);
           })
@@ -172,7 +172,7 @@ const store = new Vuex.Store({
     fetchCampanhas({ commit }) {
       return new Promise((resolve, reject) => {
         axios
-          .get("https://doacoes-api.vitorweirich.com/api/campanhas/publicas")
+          .get(`${process.env.VUE_APP_API_BASE_URL}/api/campanhas/publicas`)
           .then((resp) => {
             commit("set_campanhas", resp.data);
             resolve(resp);
@@ -185,7 +185,7 @@ const store = new Vuex.Store({
     fetchTransparencia({ commit }) {
       return new Promise((resolve, reject) => {
         axios
-          .get("https://doacoes-api.vitorweirich.com/api/transparencia/publica")
+          .get(`${process.env.VUE_APP_API_BASE_URL}/api/transparencia/publica`)
           .then((resp) => {
             commit("set_transparencia", resp.data);
             resolve(resp);
