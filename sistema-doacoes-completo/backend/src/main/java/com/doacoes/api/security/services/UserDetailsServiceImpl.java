@@ -1,6 +1,5 @@
 package com.doacoes.api.security.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,10 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.doacoes.api.model.Usuario;
 import com.doacoes.api.repository.UsuarioRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
-    @Autowired
-    UsuarioRepository usuarioRepository;
+	
+    private final UsuarioRepository usuarioRepository;
 
     @Override
     @Transactional
