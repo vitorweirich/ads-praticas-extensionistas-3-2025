@@ -7,7 +7,7 @@ services:
     expose:
       - "8080"
     environment:
-      DATABASE_URL: ${DB_HOST:-:jdbc:postgresql://localhost:5432/postgres}
+      DATABASE_URL: ${DATABASE_URL:-:jdbc:postgresql://localhost:5432/postgres}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-12345678}
       JWT_SECRET: ${JWT_SECRET:-doacoesSecretKey2025SystemSecurityTokenJWT}
