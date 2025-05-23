@@ -6,6 +6,8 @@ services:
       context: .
     expose:
       - "8080"
+    networks:
+      - coolify
     environment:
       DATABASE_URL: ${DATABASE_URL:-:jdbc:postgresql://localhost:5432/postgres}
       DB_USERNAME: ${DB_USERNAME:-postgres}
@@ -19,5 +21,8 @@ services:
     volumes:
       - ./uploads:/app/uploads
 
+networks:
+  coolify:
+    external: true
 volumes:
   pgdata:
