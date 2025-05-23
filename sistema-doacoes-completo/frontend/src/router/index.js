@@ -7,6 +7,7 @@ import PortalView from "../views/PortalView.vue";
 import TransparenciaView from "../views/TransparenciaView.vue";
 import PerfilView from "../views/PerfilView.vue";
 import AdminView from "../views/AdminView.vue";
+import NotFoundView from "../views/NotFoundView.vue";
 
 Vue.use(VueRouter);
 
@@ -47,6 +48,17 @@ const routes = [
     name: "admin",
     component: AdminView,
     meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  // Adicionar rota para página não encontrada
+  {
+    path: "/404",
+    name: "notFound",
+    component: NotFoundView,
+  },
+  // Redirecionar qualquer rota não encontrada para a página 404
+  {
+    path: "*",
+    redirect: "/404",
   },
 ];
 
