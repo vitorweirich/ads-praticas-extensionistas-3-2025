@@ -399,6 +399,8 @@
 </template>
 
 <script>
+import { formatarValor, formatarData } from "../utils";
+
 export default {
   name: "AdminView",
   data() {
@@ -508,19 +510,8 @@ export default {
     };
   },
   methods: {
-    formatarValor(valor) {
-      return valor
-        ? valor.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
-        : "0,00";
-    },
-    formatarData(data) {
-      if (!data) return "-";
-      const dataObj = new Date(data);
-      return dataObj.toLocaleDateString("pt-BR");
-    },
+    formatarValor,
+    formatarData,
     getStatusClass(status) {
       const classes = {
         ATIVA: "badge bg-success",

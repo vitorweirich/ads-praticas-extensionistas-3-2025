@@ -12,3 +12,9 @@ export function formatarValor(valor) {
       })
     : "0,00";
 }
+
+export function formatarData(data) {
+  if (!data) return "-";
+  const dataObj = new Date(data);
+  return dataObj.toLocaleDateString("pt-BR");
+}

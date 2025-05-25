@@ -346,7 +346,7 @@
 
 <script>
 import axios from "axios";
-import { formatarValor } from "../utils";
+import { formatarValor, formatarData } from "../utils";
 
 export default {
   name: "CampanhaDetalheView",
@@ -442,12 +442,7 @@ export default {
       ];
     },
     formatarValor,
-    formatarData(data) {
-      if (!data) return "Data não disponível";
-
-      const options = { day: "2-digit", month: "2-digit", year: "numeric" };
-      return new Date(data).toLocaleDateString("pt-BR", options);
-    },
+    formatarData,
     getStatusClass(status) {
       const classes = {
         ATIVA: "badge bg-success",
