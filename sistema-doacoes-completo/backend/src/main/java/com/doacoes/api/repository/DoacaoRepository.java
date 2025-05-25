@@ -17,5 +17,6 @@ public interface DoacaoRepository extends JpaRepository<Doacao, Long> {
     List<Doacao> findByStatus(Doacao.StatusDoacao status);
     @Query("SELECT SUM(d.valor) FROM Doacao d WHERE d.status = :status")
     BigDecimal sumValorByStatus(StatusDoacao status);
+	void deleteByCampanhaId(Long id);
 
 }

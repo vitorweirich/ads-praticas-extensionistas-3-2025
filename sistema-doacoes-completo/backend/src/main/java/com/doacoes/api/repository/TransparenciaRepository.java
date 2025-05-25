@@ -10,4 +10,5 @@ import java.util.List;
 public interface TransparenciaRepository extends JpaRepository<Transparencia, Long> {
     List<Transparencia> findByCampanhaId(Long campanhaId);
     List<Transparencia> findByResponsavelId(Long responsavelId);
+	void deleteByCampanhaId(Long id);
 }

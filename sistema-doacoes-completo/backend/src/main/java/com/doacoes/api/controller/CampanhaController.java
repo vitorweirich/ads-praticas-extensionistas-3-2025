@@ -3,6 +3,7 @@ package com.doacoes.api.controller;
 import java.util.List;
 import java.util.Optional;
 
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.doacoes.api.model.Campanha;
 import com.doacoes.api.payload.response.MessageResponse;
 import com.doacoes.api.repository.CampanhaRepository;
+import com.doacoes.api.repository.DoacaoRepository;
+import com.doacoes.api.repository.TransparenciaRepository;
 import com.doacoes.api.repository.UsuarioRepository;
 import com.doacoes.api.security.services.UserDetailsImpl;
 
@@ -34,6 +37,8 @@ import lombok.RequiredArgsConstructor;
 public class CampanhaController {
 
     private final CampanhaRepository campanhaRepository;
+    private final DoacaoRepository doacaoRepository;
+    private final TransparenciaRepository transparenciaRepository;
     private final UsuarioRepository usuarioRepository;
 
     @GetMapping("/publicas")
@@ -104,8 +109,11 @@ public class CampanhaController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @Transactional
     public ResponseEntity<?> excluirCampanha(@PathVariable Long id) {
         try {
+        	transparenciaRepository.deleteByCampanhaId(id);
+        	doacaoRepository.deleteByCampanhaId(id);
             campanhaRepository.deleteById(id);
             return ResponseEntity.ok(new MessageResponse("Campanha excluída com sucesso!"));
         } catch (Exception e) {
