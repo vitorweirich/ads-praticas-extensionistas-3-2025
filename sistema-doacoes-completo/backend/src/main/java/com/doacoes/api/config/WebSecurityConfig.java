@@ -1,4 +1,4 @@
-package com.doacoes.api.security;
+package com.doacoes.api.config;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,6 +68,7 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     .antMatchers("/api/auth/**").permitAll()
                     .antMatchers("/api/campanhas/publicas/**").permitAll()
+                    .antMatchers("/api/campanhas/{id}").permitAll()
                     .antMatchers("/api/transparencia/publica/**").permitAll()
                     .anyRequest().authenticated()
                 );

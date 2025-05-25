@@ -64,6 +64,9 @@ public class Campanha {
 
     @PrePersist
     public void prePersist() {
+        // TODO: Avaliar se faz sentido setar esses valores dessa forma
+        // ou se deveria ser um fallback, ou seja, se o usuário não setar
+        // o valor, setar o padrão
         dataInicio = LocalDateTime.now();
         valorArrecadado = BigDecimal.ZERO;
         status = StatusCampanha.ATIVA;
