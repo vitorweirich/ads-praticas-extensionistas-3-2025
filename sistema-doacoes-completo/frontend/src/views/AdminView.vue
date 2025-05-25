@@ -124,7 +124,6 @@
           </li>
         </ul>
         <div class="tab-content" id="adminTabContent">
-          <!-- Aba de Campanhas -->
           <div
             class="tab-pane fade show active"
             id="campanhas"
@@ -190,7 +189,6 @@
             </div>
           </div>
 
-          <!-- Aba de Doações -->
           <div
             class="tab-pane fade"
             id="doacoes"
@@ -257,7 +255,6 @@
             </div>
           </div>
 
-          <!-- Aba de Transparência -->
           <div
             class="tab-pane fade"
             id="transparencia"
@@ -323,7 +320,6 @@
             </div>
           </div>
 
-          <!-- Aba de Usuários -->
           <div
             class="tab-pane fade"
             id="usuarios"

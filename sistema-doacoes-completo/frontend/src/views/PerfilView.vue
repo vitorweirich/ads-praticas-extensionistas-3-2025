@@ -207,7 +207,6 @@
       </div>
     </div>
 
-    <!-- Modal Alterar Senha -->
     <div
       class="modal fade"
       id="alterarSenhaModal"

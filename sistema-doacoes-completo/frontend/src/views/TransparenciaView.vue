@@ -111,7 +111,6 @@
       </div>
     </div>
 
-    <!-- Modal para visualizar comprovante -->
     <div
       class="modal fade"
       id="comprovanteModal"

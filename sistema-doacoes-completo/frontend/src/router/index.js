@@ -8,6 +8,7 @@ import TransparenciaView from "../views/TransparenciaView.vue";
 import PerfilView from "../views/PerfilView.vue";
 import AdminView from "../views/AdminView.vue";
 import NotFoundView from "../views/NotFoundView.vue";
+import CampanhaDetalheView from "../views/CampanhaDetalheView.vue";
 
 Vue.use(VueRouter);
 
@@ -31,6 +32,11 @@ const routes = [
     path: "/portal",
     name: "portal",
     component: PortalView,
+  },
+  {
+    path: "/campanha/:id",
+    name: "campanha-detalhe",
+    component: CampanhaDetalheView,
   },
   {
     path: "/transparencia",
