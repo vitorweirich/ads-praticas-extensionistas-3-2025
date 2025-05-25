@@ -44,49 +44,7 @@
         v-for="(campanha, index) in campanhasFiltradas"
         :key="index"
       >
-        <div class="card card-campanha h-100">
-          <img
-            :src="
-              campanha.imagemCapa ||
-              'https://via.placeholder.com/300x200?text=Campanha'
-            "
-            class="card-img-top"
-            alt="Imagem da campanha"
-          />
-          <div class="card-body">
-            <span class="badge bg-primary mb-2">{{ campanha.categoria }}</span>
-            <h5 class="card-title">{{ campanha.titulo }}</h5>
-            <p class="card-text">
-              {{ campanha.descricao.substring(0, 100) }}...
-            </p>
-            <div class="progress mb-3">
-              <div
-                class="progress-bar progress-bar-success"
-                role="progressbar"
-                :style="{ width: calcularProgresso(campanha) + '%' }"
-                :aria-valuenow="calcularProgresso(campanha)"
-                aria-valuemin="0"
-                aria-valuemax="100"
-              >
-                {{ calcularProgresso(campanha) }}%
-              </div>
-            </div>
-            <p class="text-muted">
-              <small
-                >Meta: R$ {{ formatarValor(campanha.metaFinanceira) }} |
-                Arrecadado: R$
-                {{ formatarValor(campanha.valorArrecadado) }}</small
-              >
-            </p>
-          </div>
-          <div class="card-footer bg-white border-top-0">
-            <router-link
-              :to="'/campanha/' + campanha.id"
-              class="btn btn-primary w-100"
-              >Saiba mais</router-link
-            >
-          </div>
-        </div>
+        <CardCampanha :campanha="campanha" />
       </div>
       <div v-else-if="loading" class="col-12 text-center py-5">
         <div class="spinner-border text-primary" role="status">
@@ -113,6 +71,9 @@ export default {
       loading: true,
     };
   },
+  components: {
+    CardCampanha: () => import("../components/CardCampanha.vue"),
+  },
   computed: {
     ...mapState(["campanhas"]),
     campanhasFiltradas() {
@@ -137,22 +98,6 @@ export default {
           }
           return true;
         });
-    },
-  },
-  methods: {
-    calcularProgresso(campanha) {
-      if (!campanha.metaFinanceira || campanha.metaFinanceira === 0) return 0;
-      const progresso =
-        (campanha.valorArrecadado / campanha.metaFinanceira) * 100;
-      return Math.min(Math.round(progresso), 100);
-    },
-    formatarValor(valor) {
-      return valor
-        ? valor.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
-        : "0,00";
     },
   },
   created() {
