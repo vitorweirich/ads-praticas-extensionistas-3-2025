@@ -41,6 +41,13 @@ public class CampanhaController {
         List<Campanha> campanhas = campanhaRepository.findByStatus(Campanha.StatusCampanha.ATIVA);
         return ResponseEntity.ok(campanhas);
     }
+    
+    @GetMapping()
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<List<Campanha>> listarCampanhas() {
+    	List<Campanha> campanhas = campanhaRepository.findAll();
+    	return ResponseEntity.ok(campanhas);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> obterCampanha(@PathVariable Long id) {
@@ -86,7 +93,6 @@ public class CampanhaController {
             campanha.setStatus(campanhaAtualizada.getStatus());
             campanha.setCategoria(campanhaAtualizada.getCategoria());
             campanha.setBeneficiarios(campanhaAtualizada.getBeneficiarios());
-            campanha.setGaleriaImagens(campanhaAtualizada.getGaleriaImagens());
             
             return ResponseEntity.ok(campanhaRepository.save(campanha));
         } else {

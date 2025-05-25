@@ -1,5 +1,6 @@
 package com.doacoes.api.controller;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -8,6 +9,7 @@ import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,6 +32,14 @@ public class UsuarioController {
 	
 	private final PasswordEncoder encoder;
 
+	@GetMapping
+	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	public ResponseEntity<?> listarUsuarios() {
+		List<Usuario> allUsers = usuarioRepository.findAll();
+		
+		return ResponseEntity.ok(allUsers);
+	}
+	
 	@PutMapping("/{id}")
 	@PreAuthorize("hasRole('ADMINISTRADOR') or @userSecurity.isCurrentUser(#id)")
 	public ResponseEntity<?> atualizarUsuario(@PathVariable Long id, @Valid @RequestBody AlterarUsuarioForm usuarioAtualizado) {
@@ -58,14 +68,12 @@ public class UsuarioController {
 	    if (usuarioData.isPresent()) {
 	        Usuario usuario = usuarioData.get();
 	        
-	        // Verificar senha atual
 	        if (!encoder.matches(senhas.get("senhaAtual"), usuario.getSenha())) {
 	            return ResponseEntity
 	                    .badRequest()
 	                    .body(new MessageResponse("Erro: Senha atual incorreta!"));
 	        }
 	        
-	        // Atualizar senha
 	        usuario.setSenha(encoder.encode(senhas.get("novaSenha")));
 	        usuarioRepository.save(usuario);
 	        

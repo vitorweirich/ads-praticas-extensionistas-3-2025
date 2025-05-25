@@ -364,7 +364,6 @@ export default {
   },
   methods: {
     carregarDadosUsuario() {
-      // Preencher o formulário com os dados do usuário atual
       this.formPerfil.nome = this.usuario.nome || "";
       this.formPerfil.email = this.usuario.email || "";
       this.formPerfil.telefone = this.usuario.telefone || "";
@@ -406,7 +405,6 @@ export default {
           this.loadingPerfil = false;
           this.successMessage = "Perfil atualizado com sucesso!";
 
-          // Atualizar dados do usuário no store
           const updatedUser = {
             ...this.usuario,
             nome: usuarioAtualizado.nome,
@@ -421,7 +419,6 @@ export default {
             user: updatedUser,
           });
 
-          // Atualizar dados locais
           this.usuario = updatedUser;
         })
         .catch((error) => {
@@ -461,7 +458,6 @@ export default {
           this.loadingSenha = false;
           this.successMessageSenha = "Senha alterada com sucesso!";
 
-          // Limpar formulário
           this.formSenha = {
             senhaAtual: "",
             novaSenha: "",

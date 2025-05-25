@@ -6,391 +6,862 @@
       </div>
     </div>
 
-    <div class="row mb-4">
-      <div class="col-md-3 mb-4">
-        <div class="card bg-primary text-white">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <h6 class="card-title">Campanhas Ativas</h6>
-                <h2 class="mb-0">{{ estatisticas.campanhasAtivas }}</h2>
+    <!-- Loading state -->
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-3">Carregando dados administrativos...</p>
+    </div>
+
+    <div v-else>
+      <!-- Cards de estatísticas -->
+      <div class="row mb-4">
+        <div class="col-md-3 mb-4">
+          <div class="card bg-primary text-white">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="card-title">Campanhas Ativas</h6>
+                  <h2 class="mb-0">{{ estatisticas.campanhasAtivas }}</h2>
+                </div>
+                <i class="fas fa-bullhorn fa-2x"></i>
               </div>
-              <i class="fas fa-bullhorn fa-2x"></i>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-4">
+          <div class="card bg-success text-white">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="card-title">Total Arrecadado</h6>
+                  <h2 class="mb-0">
+                    R$ {{ formatarValor(estatisticas.totalArrecadado) }}
+                  </h2>
+                </div>
+                <i class="fas fa-hand-holding-usd fa-2x"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-4">
+          <div class="card bg-info text-white">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="card-title">Doações Recebidas</h6>
+                  <h2 class="mb-0">{{ estatisticas.totalDoacoes }}</h2>
+                </div>
+                <i class="fas fa-donate fa-2x"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-4">
+          <div class="card bg-warning text-dark">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="card-title">Usuários Cadastrados</h6>
+                  <h2 class="mb-0">{{ estatisticas.totalUsuarios }}</h2>
+                </div>
+                <i class="fas fa-users fa-2x"></i>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-md-3 mb-4">
-        <div class="card bg-success text-white">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <h6 class="card-title">Total Arrecadado</h6>
-                <h2 class="mb-0">
-                  R$ {{ formatarValor(estatisticas.totalArrecadado) }}
-                </h2>
+
+      <!-- Abas de navegação -->
+      <div class="row">
+        <div class="col-12">
+          <ul class="nav nav-tabs" id="adminTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link active"
+                id="campanhas-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#campanhas"
+                type="button"
+                role="tab"
+                aria-controls="campanhas"
+                aria-selected="true"
+              >
+                Campanhas
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="doacoes-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#doacoes"
+                type="button"
+                role="tab"
+                aria-controls="doacoes"
+                aria-selected="false"
+              >
+                Doações
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="transparencia-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#transparencia"
+                type="button"
+                role="tab"
+                aria-controls="transparencia"
+                aria-selected="false"
+              >
+                Transparência
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="usuarios-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#usuarios"
+                type="button"
+                role="tab"
+                aria-controls="usuarios"
+                aria-selected="false"
+              >
+                Usuários
+              </button>
+            </li>
+          </ul>
+          <div class="tab-content" id="adminTabContent">
+            <!-- Aba de Campanhas -->
+            <div
+              class="tab-pane fade show active"
+              id="campanhas"
+              role="tabpanel"
+              aria-labelledby="campanhas-tab"
+            >
+              <div class="card border-top-0 rounded-top-0">
+                <div class="card-body">
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <h5 class="card-title">Gerenciar Campanhas</h5>
+                    <div>
+                      <!-- TODO: Validar se faz sentido ter uma tela de campanhas (ela não mas não esta completa) 
+                      <router-link
+                        to="/admin/campanhas"
+                        class="btn btn-info me-2"
+                      >
+                        <i class="fas fa-cog"></i> Painel de Campanhas
+                      </router-link> -->
+                      <button class="btn btn-primary" @click="novaCampanha">
+                        <i class="fas fa-plus"></i> Nova Campanha
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Loading state para campanhas -->
+                  <div v-if="loadingCampanhas" class="text-center py-4">
+                    <div
+                      class="spinner-border spinner-border-sm text-primary"
+                      role="status"
+                    ></div>
+                    <span class="ms-2">Carregando campanhas...</span>
+                  </div>
+
+                  <!-- Tabela de campanhas -->
+                  <div v-else class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Título</th>
+                          <th>Categoria</th>
+                          <th>Meta</th>
+                          <th>Arrecadado</th>
+                          <th>Status</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-if="campanhas.length === 0">
+                          <td colspan="6" class="text-center py-3">
+                            Nenhuma campanha encontrada
+                          </td>
+                        </tr>
+                        <tr v-for="campanha in campanhas" :key="campanha.id">
+                          <td>{{ campanha.titulo }}</td>
+                          <td>{{ campanha.categoria }}</td>
+                          <td>
+                            R$ {{ formatarValor(campanha.metaFinanceira) }}
+                          </td>
+                          <td>
+                            R$ {{ formatarValor(campanha.valorArrecadado) }}
+                          </td>
+                          <td>
+                            <span :class="getStatusClass(campanha.status)">{{
+                              campanha.status
+                            }}</span>
+                          </td>
+                          <td>
+                            <div class="btn-group">
+                              <button
+                                class="btn btn-sm btn-outline-primary"
+                                @click="editarCampanha(campanha)"
+                              >
+                                <i class="fas fa-edit"></i>
+                              </button>
+                              <button
+                                class="btn btn-sm btn-outline-danger"
+                                @click="excluirCampanha(campanha)"
+                              >
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-              <i class="fas fa-hand-holding-usd fa-2x"></i>
             </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 mb-4">
-        <div class="card bg-info text-white">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <h6 class="card-title">Doações Recebidas</h6>
-                <h2 class="mb-0">{{ estatisticas.totalDoacoes }}</h2>
+
+            <!-- Aba de Doações -->
+            <div
+              class="tab-pane fade"
+              id="doacoes"
+              role="tabpanel"
+              aria-labelledby="doacoes-tab"
+            >
+              <div class="card border-top-0 rounded-top-0">
+                <div class="card-body">
+                  <h5 class="card-title mb-3">Gerenciar Doações</h5>
+
+                  <!-- Loading state para doações -->
+                  <div v-if="loadingDoacoes" class="text-center py-4">
+                    <div
+                      class="spinner-border spinner-border-sm text-primary"
+                      role="status"
+                    ></div>
+                    <span class="ms-2">Carregando doações...</span>
+                  </div>
+
+                  <!-- Tabela de doações -->
+                  <div v-else class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Campanha</th>
+                          <th>Doador</th>
+                          <th>Valor</th>
+                          <th>Data</th>
+                          <th>Status</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-if="doacoes.length === 0">
+                          <td colspan="6" class="text-center py-3">
+                            Nenhuma doação encontrada
+                          </td>
+                        </tr>
+                        <tr v-for="doacao in doacoes" :key="doacao.id">
+                          <td>{{ doacao.campanha.titulo }}</td>
+                          <td>
+                            {{
+                              doacao.anonimo
+                                ? "Anônimo"
+                                : doacao.doador
+                                ? doacao.doador.nome
+                                : "N/A"
+                            }}
+                          </td>
+                          <td>R$ {{ formatarValor(doacao.valor) }}</td>
+                          <td>{{ formatarData(doacao.dataHora) }}</td>
+                          <td>
+                            <span :class="getStatusClass(doacao.status)">{{
+                              doacao.status
+                            }}</span>
+                          </td>
+                          <td>
+                            <div class="btn-group">
+                              <button
+                                class="btn btn-sm btn-outline-primary"
+                                @click="verDoacao(doacao)"
+                              >
+                                <i class="fas fa-eye"></i>
+                              </button>
+                              <button
+                                class="btn btn-sm btn-outline-success"
+                                @click="confirmarDoacao(doacao)"
+                                v-if="doacao.status === 'PENDENTE'"
+                              >
+                                <i class="fas fa-check"></i>
+                              </button>
+                              <button
+                                class="btn btn-sm btn-outline-danger"
+                                @click="cancelarDoacao(doacao)"
+                                v-if="doacao.status !== 'CANCELADA'"
+                              >
+                                <i class="fas fa-times"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-              <i class="fas fa-donate fa-2x"></i>
             </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 mb-4">
-        <div class="card bg-warning text-dark">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <h6 class="card-title">Usuários Cadastrados</h6>
-                <h2 class="mb-0">{{ estatisticas.totalUsuarios }}</h2>
+
+            <!-- Aba de Transparência -->
+            <div
+              class="tab-pane fade"
+              id="transparencia"
+              role="tabpanel"
+              aria-labelledby="transparencia-tab"
+            >
+              <div class="card border-top-0 rounded-top-0">
+                <div class="card-body">
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <h5 class="card-title">Gerenciar Transparência</h5>
+                    <button class="btn btn-primary" @click="novaAlocacao">
+                      <i class="fas fa-plus"></i> Nova Alocação
+                    </button>
+                  </div>
+
+                  <!-- Loading state para alocações -->
+                  <div v-if="loadingAlocacoes" class="text-center py-4">
+                    <div
+                      class="spinner-border spinner-border-sm text-primary"
+                      role="status"
+                    ></div>
+                    <span class="ms-2">Carregando alocações...</span>
+                  </div>
+
+                  <!-- Tabela de alocações -->
+                  <div v-else class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Campanha</th>
+                          <th>Título</th>
+                          <th>Valor</th>
+                          <th>Data</th>
+                          <th>Responsável</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-if="alocacoes.length === 0">
+                          <td colspan="6" class="text-center py-3">
+                            Nenhuma alocação encontrada
+                          </td>
+                        </tr>
+                        <tr v-for="alocacao in alocacoes" :key="alocacao.id">
+                          <td>{{ alocacao.campanha.titulo }}</td>
+                          <td>{{ alocacao.tituloAlocacao }}</td>
+                          <td>R$ {{ formatarValor(alocacao.valorAlocado) }}</td>
+                          <td>{{ formatarData(alocacao.dataAlocacao) }}</td>
+                          <td>{{ alocacao.responsavel.nome }}</td>
+                          <td>
+                            <div class="btn-group">
+                              <button
+                                class="btn btn-sm btn-outline-primary"
+                                @click="verAlocacao(alocacao)"
+                              >
+                                <i class="fas fa-eye"></i>
+                              </button>
+                              <button
+                                class="btn btn-sm btn-outline-secondary"
+                                @click="editarAlocacao(alocacao)"
+                              >
+                                <i class="fas fa-edit"></i>
+                              </button>
+                              <button
+                                class="btn btn-sm btn-outline-danger"
+                                @click="excluirAlocacao(alocacao)"
+                              >
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-              <i class="fas fa-users fa-2x"></i>
+            </div>
+
+            <!-- Aba de Usuários -->
+            <div
+              class="tab-pane fade"
+              id="usuarios"
+              role="tabpanel"
+              aria-labelledby="usuarios-tab"
+            >
+              <div class="card border-top-0 rounded-top-0">
+                <div class="card-body">
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <h5 class="card-title">Gerenciar Usuários</h5>
+                    <button class="btn btn-primary" @click="novoUsuario">
+                      <i class="fas fa-plus"></i> Novo Administrador
+                    </button>
+                  </div>
+
+                  <!-- Loading state para usuários -->
+                  <div v-if="loadingUsuarios" class="text-center py-4">
+                    <div
+                      class="spinner-border spinner-border-sm text-primary"
+                      role="status"
+                    ></div>
+                    <span class="ms-2">Carregando usuários...</span>
+                  </div>
+
+                  <!-- Tabela de usuários -->
+                  <div v-else class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>Email</th>
+                          <th>Tipo</th>
+                          <th>Data Cadastro</th>
+                          <th>Status</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-if="usuarios.length === 0">
+                          <td colspan="6" class="text-center py-3">
+                            Nenhum usuário encontrado
+                          </td>
+                        </tr>
+                        <tr v-for="usuario in usuarios" :key="usuario.id">
+                          <td>{{ usuario.nome }}</td>
+                          <td>{{ usuario.email }}</td>
+                          <td>{{ usuario.tipo }}</td>
+                          <td>{{ formatarData(usuario.dataCadastro) }}</td>
+                          <td>
+                            <span
+                              :class="
+                                usuario.ativo
+                                  ? 'badge bg-success'
+                                  : 'badge bg-danger'
+                              "
+                            >
+                              {{ usuario.ativo ? "Ativo" : "Inativo" }}
+                            </span>
+                          </td>
+                          <td>
+                            <div class="btn-group">
+                              <button
+                                class="btn btn-sm btn-outline-primary"
+                                @click="verUsuario(usuario)"
+                              >
+                                <i class="fas fa-eye"></i>
+                              </button>
+                              <button
+                                class="btn btn-sm btn-outline-warning"
+                                @click="alterarStatus(usuario)"
+                              >
+                                <i
+                                  :class="
+                                    usuario.ativo
+                                      ? 'fas fa-ban'
+                                      : 'fas fa-check'
+                                  "
+                                ></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="row">
-      <div class="col-12">
-        <ul class="nav nav-tabs" id="adminTab" role="tablist">
-          <li class="nav-item" role="presentation">
+    <!-- Modal de Nova Campanha -->
+    <div
+      class="modal fade"
+      :class="{ 'show d-block': showModalCampanha }"
+      tabindex="-1"
+      :style="{ background: showModalCampanha ? 'rgba(0,0,0,0.5)' : '' }"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              {{ campanhaSelecionada.id ? "Editar" : "Nova" }} Campanha
+            </h5>
             <button
-              class="nav-link active"
-              id="campanhas-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#campanhas"
               type="button"
-              role="tab"
-              aria-controls="campanhas"
-              aria-selected="true"
-            >
-              Campanhas
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button
-              class="nav-link"
-              id="doacoes-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#doacoes"
-              type="button"
-              role="tab"
-              aria-controls="doacoes"
-              aria-selected="false"
-            >
-              Doações
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button
-              class="nav-link"
-              id="transparencia-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#transparencia"
-              type="button"
-              role="tab"
-              aria-controls="transparencia"
-              aria-selected="false"
-            >
-              Transparência
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button
-              class="nav-link"
-              id="usuarios-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#usuarios"
-              type="button"
-              role="tab"
-              aria-controls="usuarios"
-              aria-selected="false"
-            >
-              Usuários
-            </button>
-          </li>
-        </ul>
-        <div class="tab-content" id="adminTabContent">
-          <div
-            class="tab-pane fade show active"
-            id="campanhas"
-            role="tabpanel"
-            aria-labelledby="campanhas-tab"
-          >
-            <div class="card border-top-0 rounded-top-0">
-              <div class="card-body">
-                <div
-                  class="d-flex justify-content-between align-items-center mb-3"
-                >
-                  <h5 class="card-title">Gerenciar Campanhas</h5>
-                  <button class="btn btn-primary" @click="novaCampanha">
-                    <i class="fas fa-plus"></i> Nova Campanha
-                  </button>
-                </div>
-                <div class="table-responsive">
-                  <table class="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Título</th>
-                        <th>Categoria</th>
-                        <th>Meta</th>
-                        <th>Arrecadado</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="campanha in campanhas" :key="campanha.id">
-                        <td>{{ campanha.titulo }}</td>
-                        <td>{{ campanha.categoria }}</td>
-                        <td>R$ {{ formatarValor(campanha.metaFinanceira) }}</td>
-                        <td>
-                          R$ {{ formatarValor(campanha.valorArrecadado) }}
-                        </td>
-                        <td>
-                          <span :class="getStatusClass(campanha.status)">{{
-                            campanha.status
-                          }}</span>
-                        </td>
-                        <td>
-                          <div class="btn-group">
-                            <button
-                              class="btn btn-sm btn-outline-primary"
-                              @click="editarCampanha(campanha)"
-                            >
-                              <i class="fas fa-edit"></i>
-                            </button>
-                            <button
-                              class="btn btn-sm btn-outline-danger"
-                              @click="excluirCampanha(campanha)"
-                            >
-                              <i class="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+              class="btn-close"
+              @click="fecharModalCampanha"
+            ></button>
           </div>
-
-          <div
-            class="tab-pane fade"
-            id="doacoes"
-            role="tabpanel"
-            aria-labelledby="doacoes-tab"
-          >
-            <div class="card border-top-0 rounded-top-0">
-              <div class="card-body">
-                <h5 class="card-title mb-3">Gerenciar Doações</h5>
-                <div class="table-responsive">
-                  <table class="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Campanha</th>
-                        <th>Doador</th>
-                        <th>Valor</th>
-                        <th>Data</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="doacao in doacoes" :key="doacao.id">
-                        <td>{{ doacao.campanha.titulo }}</td>
-                        <td>
-                          {{ doacao.doador ? doacao.doador.nome : "Anônimo" }}
-                        </td>
-                        <td>R$ {{ formatarValor(doacao.valor) }}</td>
-                        <td>{{ formatarData(doacao.dataHora) }}</td>
-                        <td>
-                          <span :class="getStatusClass(doacao.status)">{{
-                            doacao.status
-                          }}</span>
-                        </td>
-                        <td>
-                          <div class="btn-group">
-                            <button
-                              class="btn btn-sm btn-outline-primary"
-                              @click="verDoacao(doacao)"
-                            >
-                              <i class="fas fa-eye"></i>
-                            </button>
-                            <button
-                              class="btn btn-sm btn-outline-success"
-                              @click="confirmarDoacao(doacao)"
-                              v-if="doacao.status === 'PENDENTE'"
-                            >
-                              <i class="fas fa-check"></i>
-                            </button>
-                            <button
-                              class="btn btn-sm btn-outline-danger"
-                              @click="cancelarDoacao(doacao)"
-                              v-if="doacao.status !== 'CANCELADA'"
-                            >
-                              <i class="fas fa-times"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+          <div class="modal-body">
+            <form @submit.prevent="salvarCampanha">
+              <div class="row mb-3">
+                <div class="col-md-8">
+                  <label for="titulo" class="form-label">Título</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="titulo"
+                    v-model="campanhaSelecionada.titulo"
+                    required
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label for="categoria" class="form-label">Categoria</label>
+                  <select
+                    class="form-select"
+                    id="categoria"
+                    v-model="campanhaSelecionada.categoria"
+                    required
+                  >
+                    <option value="">Selecione uma categoria</option>
+                    <option value="saude">Saúde</option>
+                    <option value="educacao">Educação</option>
+                    <option value="emergencia">Emergência</option>
+                    <option value="social">Social</option>
+                    <option value="ambiental">Ambiental</option>
+                  </select>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div
-            class="tab-pane fade"
-            id="transparencia"
-            role="tabpanel"
-            aria-labelledby="transparencia-tab"
-          >
-            <div class="card border-top-0 rounded-top-0">
-              <div class="card-body">
-                <div
-                  class="d-flex justify-content-between align-items-center mb-3"
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="metaFinanceira" class="form-label"
+                    >Meta Financeira (R$)</label
+                  >
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="metaFinanceira"
+                    v-model="campanhaSelecionada.metaFinanceira"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label for="dataTermino" class="form-label"
+                    >Data de Término
+                  </label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="dataTermino"
+                    v-model="campanhaSelecionada.dataTermino"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="imagemCapa" class="form-label"
+                  >URL da Imagem de Capa</label
                 >
-                  <h5 class="card-title">Gerenciar Transparência</h5>
-                  <button class="btn btn-primary" @click="novaAlocacao">
-                    <i class="fas fa-plus"></i> Nova Alocação
-                  </button>
-                </div>
-                <div class="table-responsive">
-                  <table class="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Campanha</th>
-                        <th>Título</th>
-                        <th>Valor</th>
-                        <th>Data</th>
-                        <th>Responsável</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(alocacao, index) in alocacoes" :key="index">
-                        <td>{{ alocacao.campanha.titulo }}</td>
-                        <td>{{ alocacao.tituloAlocacao }}</td>
-                        <td>R$ {{ formatarValor(alocacao.valorAlocado) }}</td>
-                        <td>{{ formatarData(alocacao.dataAlocacao) }}</td>
-                        <td>{{ alocacao.responsavel.nome }}</td>
-                        <td>
-                          <div class="btn-group">
-                            <button
-                              class="btn btn-sm btn-outline-primary"
-                              @click="verAlocacao(alocacao)"
-                            >
-                              <i class="fas fa-eye"></i>
-                            </button>
-                            <button
-                              class="btn btn-sm btn-outline-secondary"
-                              @click="editarAlocacao(alocacao)"
-                            >
-                              <i class="fas fa-edit"></i>
-                            </button>
-                            <button
-                              class="btn btn-sm btn-outline-danger"
-                              @click="excluirAlocacao(alocacao)"
-                            >
-                              <i class="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                <input
+                  type="url"
+                  class="form-control"
+                  id="imagemCapa"
+                  v-model="campanhaSelecionada.imagemCapa"
+                />
               </div>
-            </div>
-          </div>
 
-          <div
-            class="tab-pane fade"
-            id="usuarios"
-            role="tabpanel"
-            aria-labelledby="usuarios-tab"
-          >
-            <div class="card border-top-0 rounded-top-0">
-              <div class="card-body">
-                <div
-                  class="d-flex justify-content-between align-items-center mb-3"
+              <div class="mb-3">
+                <label for="descricao" class="form-label">Descrição</label>
+                <textarea
+                  class="form-control"
+                  id="descricao"
+                  v-model="campanhaSelecionada.descricao"
+                  rows="5"
+                  required
+                ></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label for="beneficiarios" class="form-label"
+                  >Beneficiários</label
                 >
-                  <h5 class="card-title">Gerenciar Usuários</h5>
-                  <button class="btn btn-primary" @click="novoUsuario">
-                    <i class="fas fa-plus"></i> Novo Administrador
-                  </button>
-                </div>
-                <div class="table-responsive">
-                  <table class="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Tipo</th>
-                        <th>Data Cadastro</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="usuario in usuarios" :key="usuario.id">
-                        <td>{{ usuario.nome }}</td>
-                        <td>{{ usuario.email }}</td>
-                        <td>{{ usuario.tipo }}</td>
-                        <td>{{ formatarData(usuario.dataCadastro) }}</td>
-                        <td>
-                          <span
-                            :class="
-                              usuario.ativo
-                                ? 'badge bg-success'
-                                : 'badge bg-danger'
-                            "
-                          >
-                            {{ usuario.ativo ? "Ativo" : "Inativo" }}
-                          </span>
-                        </td>
-                        <td>
-                          <div class="btn-group">
-                            <button
-                              class="btn btn-sm btn-outline-primary"
-                              @click="verUsuario(usuario)"
-                            >
-                              <i class="fas fa-eye"></i>
-                            </button>
-                            <button
-                              class="btn btn-sm btn-outline-warning"
-                              @click="alterarStatus(usuario)"
-                            >
-                              <i
-                                :class="
-                                  usuario.ativo ? 'fas fa-ban' : 'fas fa-check'
-                                "
-                              ></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <textarea
+                  class="form-control"
+                  id="beneficiarios"
+                  v-model="campanhaSelecionada.beneficiarios"
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select
+                  class="form-select"
+                  id="status"
+                  v-model="campanhaSelecionada.status"
+                  required
+                >
+                  <option value="ATIVA">Ativa</option>
+                  <option value="FINALIZADA">Finalizada</option>
+                  <option value="CANCELADA">Cancelada</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="fecharModalCampanha"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="salvarCampanha"
+              :disabled="salvandoCampanha"
+            >
+              <span
+                v-if="salvandoCampanha"
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+              ></span>
+              Salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Nova Alocação -->
+    <div
+      class="modal fade"
+      :class="{ 'show d-block': showModalAlocacao }"
+      tabindex="-1"
+      :style="{ background: showModalAlocacao ? 'rgba(0,0,0,0.5)' : '' }"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              {{ alocacaoSelecionada.id ? "Editar" : "Nova" }} Alocação
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              @click="fecharModalAlocacao"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="salvarAlocacao">
+              <div class="mb-3">
+                <label for="campanha" class="form-label">Campanha</label>
+                <select
+                  class="form-select"
+                  id="campanha"
+                  v-model="alocacaoSelecionada.campanha"
+                  required
+                >
+                  <option value="">Selecione uma campanha</option>
+                  <option
+                    v-for="campanha in campanhas"
+                    :key="campanha.id"
+                    :value="campanha"
+                  >
+                    {{ campanha.titulo }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="tituloAlocacao" class="form-label"
+                  >Título da Alocação</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="tituloAlocacao"
+                  v-model="alocacaoSelecionada.tituloAlocacao"
+                  required
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="descricaoAlocacao" class="form-label"
+                  >Descrição</label
+                >
+                <textarea
+                  class="form-control"
+                  id="descricaoAlocacao"
+                  v-model="alocacaoSelecionada.descricaoAlocacao"
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label for="valorAlocado" class="form-label"
+                  >Valor Alocado (R$)</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="valorAlocado"
+                  v-model="alocacaoSelecionada.valorAlocado"
+                  min="0"
+                  step="0.01"
+                  required
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="comprovante" class="form-label"
+                  >URL do Comprovante</label
+                >
+                <input
+                  type="url"
+                  class="form-control"
+                  id="comprovante"
+                  v-model="alocacaoSelecionada.comprovante"
+                />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="fecharModalAlocacao"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="salvarAlocacao"
+              :disabled="salvandoAlocacao"
+            >
+              <span
+                v-if="salvandoAlocacao"
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+              ></span>
+              Salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Novo Usuário -->
+    <div
+      class="modal fade"
+      :class="{ 'show d-block': showModalUsuario }"
+      tabindex="-1"
+      :style="{ background: showModalUsuario ? 'rgba(0,0,0,0.5)' : '' }"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Novo Administrador</h5>
+            <button
+              type="button"
+              class="btn-close"
+              @click="fecharModalUsuario"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="salvarUsuario">
+              <div class="mb-3">
+                <label for="nomeUsuario" class="form-label"
+                  >Nome Completo</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="nomeUsuario"
+                  v-model="usuarioSelecionado.nome"
+                  required
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="emailUsuario" class="form-label">Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="emailUsuario"
+                  v-model="usuarioSelecionado.email"
+                  required
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="senhaUsuario" class="form-label">Senha</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="senhaUsuario"
+                  v-model="usuarioSelecionado.senha"
+                  required
+                  minlength="6"
+                />
+                <div class="form-text">
+                  A senha deve ter pelo menos 6 caracteres.
                 </div>
               </div>
-            </div>
+
+              <div class="mb-3">
+                <label for="confirmarSenha" class="form-label"
+                  >Confirmar Senha</label
+                >
+                <input
+                  type="password"
+                  class="form-control"
+                  id="confirmarSenha"
+                  v-model="usuarioSelecionado.confirmarSenha"
+                  required
+                />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              @click="fecharModalUsuario"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="salvarUsuario"
+              :disabled="salvandoUsuario || !senhasIguais"
+            >
+              <span
+                v-if="salvandoUsuario"
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+              ></span>
+              Salvar
+            </button>
           </div>
         </div>
       </div>
@@ -399,119 +870,537 @@
 </template>
 
 <script>
-import { formatarValor, formatarData } from "../utils";
+import axios from "axios";
 
 export default {
   name: "AdminView",
   data() {
     return {
+      loading: true,
+      loadingCampanhas: false,
+      loadingDoacoes: false,
+      loadingAlocacoes: false,
+      loadingUsuarios: false,
+
       estatisticas: {
-        campanhasAtivas: 5,
-        totalArrecadado: 15750.0,
-        totalDoacoes: 87,
-        totalUsuarios: 42,
+        campanhasAtivas: 0,
+        totalArrecadado: 0,
+        totalDoacoes: 0,
+        totalUsuarios: 0,
       },
-      campanhas: [
-        {
-          id: 1,
-          titulo: "Campanha de Saúde",
-          categoria: "saude",
-          metaFinanceira: 10000.0,
-          valorArrecadado: 7500.0,
-          status: "ATIVA",
-        },
-        {
-          id: 2,
-          titulo: "Educação para Todos",
-          categoria: "educacao",
-          metaFinanceira: 5000.0,
-          valorArrecadado: 3250.0,
-          status: "ATIVA",
-        },
-        {
-          id: 3,
-          titulo: "Ajuda Emergencial",
-          categoria: "emergencia",
-          metaFinanceira: 8000.0,
-          valorArrecadado: 5000.0,
-          status: "ATIVA",
-        },
-      ],
-      doacoes: [
-        {
-          id: 1,
-          campanha: { id: 1, titulo: "Campanha de Saúde" },
-          doador: { id: 1, nome: "João Silva" },
-          valor: 100.0,
-          dataHora: "2025-05-15T10:30:00",
-          status: "CONFIRMADA",
-        },
-        {
-          id: 2,
-          campanha: { id: 2, titulo: "Educação para Todos" },
-          doador: { id: 2, nome: "Maria Oliveira" },
-          valor: 50.0,
-          dataHora: "2025-05-10T14:45:00",
-          status: "CONFIRMADA",
-        },
-        {
-          id: 3,
-          campanha: { id: 3, titulo: "Ajuda Emergencial" },
-          doador: null,
-          valor: 200.0,
-          dataHora: "2025-05-20T09:15:00",
-          status: "PENDENTE",
-        },
-      ],
-      alocacoes: [
-        {
-          id: 1,
-          campanha: { id: 1, titulo: "Campanha de Saúde" },
-          tituloAlocacao: "Compra de Medicamentos",
-          valorAlocado: 2500.0,
-          dataAlocacao: "2025-05-18T11:30:00",
-          responsavel: { id: 3, nome: "Admin Sistema" },
-        },
-        {
-          id: 2,
-          campanha: { id: 2, titulo: "Educação para Todos" },
-          tituloAlocacao: "Material Escolar",
-          valorAlocado: 1500.0,
-          dataAlocacao: "2025-05-12T16:45:00",
-          responsavel: { id: 3, nome: "Admin Sistema" },
-        },
-      ],
-      usuarios: [
-        {
-          id: 1,
-          nome: "João Silva",
-          email: "joao@example.com",
-          tipo: "DOADOR",
-          dataCadastro: "2025-04-10T08:30:00",
-          ativo: true,
-        },
-        {
-          id: 2,
-          nome: "Maria Oliveira",
-          email: "maria@example.com",
-          tipo: "DOADOR",
-          dataCadastro: "2025-04-15T14:20:00",
-          ativo: true,
-        },
-        {
-          id: 3,
-          nome: "Admin Sistema",
-          email: "admin@example.com",
-          tipo: "ADMINISTRADOR",
-          dataCadastro: "2025-04-01T10:00:00",
-          ativo: true,
-        },
-      ],
+
+      campanhas: [],
+      doacoes: [],
+      alocacoes: [],
+      usuarios: [],
+
+      showModalCampanha: false,
+      showModalAlocacao: false,
+      showModalUsuario: false,
+
+      campanhaSelecionada: {
+        titulo: "",
+        categoria: "",
+        metaFinanceira: 0,
+        dataTermino: "",
+        imagemCapa: "",
+        descricao: "",
+        beneficiarios: "",
+        status: "ATIVA",
+      },
+
+      alocacaoSelecionada: {
+        campanha: null,
+        tituloAlocacao: "",
+        descricaoAlocacao: "",
+        valorAlocado: 0,
+        comprovante: "",
+      },
+
+      usuarioSelecionado: {
+        nome: "",
+        email: "",
+        senha: "",
+        confirmarSenha: "",
+      },
+
+      salvandoCampanha: false,
+      salvandoAlocacao: false,
+      salvandoUsuario: false,
     };
   },
+  computed: {
+    senhasIguais() {
+      return (
+        this.usuarioSelecionado.senha === this.usuarioSelecionado.confirmarSenha
+      );
+    },
+  },
+  created() {
+    this.carregarDados();
+  },
   methods: {
-    formatarValor,
-    formatarData,
+    async carregarDados() {
+      this.loading = true;
+
+      try {
+        await Promise.all([
+          this.carregarEstatisticas(),
+          this.carregarCampanhas(),
+          this.carregarDoacoes(),
+          this.carregarAlocacoes(),
+          this.carregarUsuarios(),
+        ]);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async carregarEstatisticas() {
+      try {
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_BASE_URL}/api/admin/estatisticas`
+        );
+        this.estatisticas = response.data;
+      } catch (error) {
+        console.error("Erro ao carregar estatísticas:", error);
+        this.estatisticas = {
+          campanhasAtivas: 0,
+          totalArrecadado: 0,
+          totalDoacoes: 0,
+          totalUsuarios: 0,
+        };
+      }
+    },
+
+    async carregarCampanhas() {
+      this.loadingCampanhas = true;
+      try {
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`
+        );
+        this.campanhas = response.data;
+      } catch (error) {
+        console.error("Erro ao carregar campanhas:", error);
+        this.campanhas = [];
+      } finally {
+        this.loadingCampanhas = false;
+      }
+    },
+
+    async carregarDoacoes() {
+      this.loadingDoacoes = true;
+      try {
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_BASE_URL}/api/admin/doacoes`
+        );
+        this.doacoes = response.data;
+      } catch (error) {
+        console.error("Erro ao carregar doações:", error);
+        this.doacoes = [];
+      } finally {
+        this.loadingDoacoes = false;
+      }
+    },
+
+    async carregarAlocacoes() {
+      this.loadingAlocacoes = true;
+      try {
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/publica`
+        );
+        this.alocacoes = response.data;
+      } catch (error) {
+        console.error("Erro ao carregar alocações:", error);
+        this.alocacoes = [];
+      } finally {
+        this.loadingAlocacoes = false;
+      }
+    },
+
+    async carregarUsuarios() {
+      this.loadingUsuarios = true;
+      try {
+        const response = await axios.get(
+          `${process.env.VUE_APP_API_BASE_URL}/api/usuarios`
+        );
+        this.usuarios = response.data;
+      } catch (error) {
+        console.error("Erro ao carregar usuários:", error);
+        this.usuarios = [];
+      } finally {
+        this.loadingUsuarios = false;
+      }
+    },
+
+    novaCampanha() {
+      this.campanhaSelecionada = {
+        titulo: "",
+        categoria: "",
+        metaFinanceira: 0,
+        dataTermino: this.formatarDataInput(
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        ),
+        imagemCapa: "",
+        descricao: "",
+        beneficiarios: "",
+        status: "ATIVA",
+      };
+      this.showModalCampanha = true;
+    },
+
+    editarCampanha(campanha) {
+      this.campanhaSelecionada = {
+        ...campanha,
+      };
+      this.showModalCampanha = true;
+    },
+
+    async salvarCampanha() {
+      this.salvandoCampanha = true;
+
+      try {
+        if (this.campanhaSelecionada.id) {
+          await axios.put(
+            `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${this.campanhaSelecionada.id}`,
+            this.campanhaSelecionada
+          );
+        } else {
+          await axios.post(
+            `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`,
+            this.campanhaSelecionada
+          );
+        }
+
+        await this.carregarCampanhas();
+        this.fecharModalCampanha();
+
+        alert(
+          this.campanhaSelecionada.id
+            ? "Campanha atualizada com sucesso!"
+            : "Campanha criada com sucesso!"
+        );
+      } catch (error) {
+        console.error("Erro ao salvar campanha:", error);
+        alert("Erro ao salvar campanha. Por favor, tente novamente.");
+      } finally {
+        this.salvandoCampanha = false;
+      }
+    },
+
+    async excluirCampanha(campanha) {
+      if (
+        confirm(
+          `Tem certeza que deseja excluir a campanha "${campanha.titulo}"?`
+        )
+      ) {
+        try {
+          await axios.delete(
+            `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanha.id}`
+          );
+
+          await this.carregarCampanhas();
+
+          alert("Campanha excluída com sucesso!");
+        } catch (error) {
+          console.error("Erro ao excluir campanha:", error);
+          alert("Erro ao excluir campanha. Por favor, tente novamente.");
+        }
+      }
+    },
+
+    fecharModalCampanha() {
+      this.showModalCampanha = false;
+      this.campanhaSelecionada = {
+        titulo: "",
+        categoria: "",
+        metaFinanceira: 0,
+        dataTermino: "",
+        imagemCapa: "",
+        descricao: "",
+        beneficiarios: "",
+        status: "ATIVA",
+      };
+    },
+
+    verDoacao(doacao) {
+      alert(
+        `Detalhes da Doação:\n\nCampanha: ${doacao.campanha.titulo}\nDoador: ${
+          doacao.anonimo
+            ? "Anônimo"
+            : doacao.doador
+            ? doacao.doador.nome
+            : "N/A"
+        }\nValor: R$ ${this.formatarValor(
+          doacao.valor
+        )}\nData: ${this.formatarData(doacao.dataHora)}\nStatus: ${
+          doacao.status
+        }\nMensagem: ${doacao.mensagem || "Nenhuma mensagem"}`
+      );
+    },
+
+    async confirmarDoacao(doacao) {
+      if (
+        confirm(
+          `Confirmar doação de R$ ${this.formatarValor(
+            doacao.valor
+          )} para a campanha "${doacao.campanha.titulo}"?`
+        )
+      ) {
+        try {
+          await axios.put(
+            `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/confirmar`
+          );
+
+          await this.carregarDoacoes();
+
+          await this.carregarEstatisticas();
+
+          alert("Doação confirmada com sucesso!");
+        } catch (error) {
+          console.error("Erro ao confirmar doação:", error);
+          alert("Erro ao confirmar doação. Por favor, tente novamente.");
+        }
+      }
+    },
+
+    async cancelarDoacao(doacao) {
+      if (
+        confirm(
+          `Cancelar doação de R$ ${this.formatarValor(
+            doacao.valor
+          )} para a campanha "${doacao.campanha.titulo}"?`
+        )
+      ) {
+        try {
+          await axios.put(
+            `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/cancelar`
+          );
+
+          await this.carregarDoacoes();
+
+          await this.carregarEstatisticas();
+
+          alert("Doação cancelada com sucesso!");
+        } catch (error) {
+          console.error("Erro ao cancelar doação:", error);
+          alert("Erro ao cancelar doação. Por favor, tente novamente.");
+        }
+      }
+    },
+
+    novaAlocacao() {
+      this.alocacaoSelecionada = {
+        campanha: null,
+        tituloAlocacao: "",
+        descricaoAlocacao: "",
+        valorAlocado: 0,
+        comprovante: "",
+      };
+      this.showModalAlocacao = true;
+    },
+
+    editarAlocacao(alocacao) {
+      this.alocacaoSelecionada = { ...alocacao };
+      this.showModalAlocacao = true;
+    },
+
+    async salvarAlocacao() {
+      this.salvandoAlocacao = true;
+
+      try {
+        if (this.alocacaoSelecionada.id) {
+          await axios.put(
+            `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/${this.alocacaoSelecionada.id}`,
+            this.alocacaoSelecionada
+          );
+        } else {
+          await axios.post(
+            `${process.env.VUE_APP_API_BASE_URL}/api/transparencia`,
+            this.alocacaoSelecionada
+          );
+        }
+
+        await this.carregarAlocacoes();
+        this.fecharModalAlocacao();
+
+        alert(
+          this.alocacaoSelecionada.id
+            ? "Alocação atualizada com sucesso!"
+            : "Alocação criada com sucesso!"
+        );
+      } catch (error) {
+        console.error("Erro ao salvar alocação:", error);
+        alert("Erro ao salvar alocação. Por favor, tente novamente.");
+      } finally {
+        this.salvandoAlocacao = false;
+      }
+    },
+
+    verAlocacao(alocacao) {
+      alert(
+        `Detalhes da Alocação:\n\nCampanha: ${
+          alocacao.campanha.titulo
+        }\nTítulo: ${alocacao.tituloAlocacao}\nDescrição: ${
+          alocacao.descricaoAlocacao || "Nenhuma descrição"
+        }\nValor: R$ ${this.formatarValor(
+          alocacao.valorAlocado
+        )}\nData: ${this.formatarData(alocacao.dataAlocacao)}\nResponsável: ${
+          alocacao.responsavel.nome
+        }`
+      );
+    },
+
+    async excluirAlocacao(alocacao) {
+      if (
+        confirm(
+          `Tem certeza que deseja excluir a alocação "${alocacao.tituloAlocacao}"?`
+        )
+      ) {
+        try {
+          await axios.delete(
+            `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/${alocacao.id}`
+          );
+
+          await this.carregarAlocacoes();
+
+          alert("Alocação excluída com sucesso!");
+        } catch (error) {
+          console.error("Erro ao excluir alocação:", error);
+          alert("Erro ao excluir alocação. Por favor, tente novamente.");
+        }
+      }
+    },
+
+    fecharModalAlocacao() {
+      this.showModalAlocacao = false;
+      this.alocacaoSelecionada = {
+        campanha: null,
+        tituloAlocacao: "",
+        descricaoAlocacao: "",
+        valorAlocado: 0,
+        comprovante: "",
+      };
+    },
+
+    novoUsuario() {
+      this.usuarioSelecionado = {
+        nome: "",
+        email: "",
+        senha: "",
+        confirmarSenha: "",
+      };
+      this.showModalUsuario = true;
+    },
+
+    async salvarUsuario() {
+      if (!this.senhasIguais) {
+        alert("As senhas não coincidem.");
+        return;
+      }
+
+      this.salvandoUsuario = true;
+
+      try {
+        await axios.post(
+          `${process.env.VUE_APP_API_BASE_URL}/api/auth/cadastro-admin`,
+          {
+            nome: this.usuarioSelecionado.nome,
+            email: this.usuarioSelecionado.email,
+            senha: this.usuarioSelecionado.senha,
+          }
+        );
+
+        await this.carregarUsuarios();
+        this.fecharModalUsuario();
+
+        alert("Administrador criado com sucesso!");
+      } catch (error) {
+        console.error("Erro ao criar administrador:", error);
+        alert("Erro ao criar administrador. Por favor, tente novamente.");
+      } finally {
+        this.salvandoUsuario = false;
+      }
+    },
+
+    verUsuario(usuario) {
+      alert(
+        `Detalhes do Usuário:\n\nNome: ${usuario.nome}\nEmail: ${
+          usuario.email
+        }\nTipo: ${usuario.tipo}\nData de Cadastro: ${this.formatarData(
+          usuario.dataCadastro
+        )}\nStatus: ${usuario.ativo ? "Ativo" : "Inativo"}`
+      );
+    },
+
+    async alterarStatus(usuario) {
+      const novoStatus = usuario.ativo ? "inativar" : "ativar";
+      if (
+        confirm(
+          `Tem certeza que deseja ${novoStatus} o usuário "${usuario.nome}"?`
+        )
+      ) {
+        try {
+          await axios.put(
+            `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/${usuario.id}/status`,
+            {
+              ativo: !usuario.ativo,
+            }
+          );
+
+          await this.carregarUsuarios();
+
+          alert(
+            `Usuário ${
+              novoStatus === "ativar" ? "ativado" : "inativado"
+            } com sucesso!`
+          );
+        } catch (error) {
+          console.error(`Erro ao ${novoStatus} usuário:`, error);
+          alert(`Erro ao ${novoStatus} usuário. Por favor, tente novamente.`);
+        }
+      }
+    },
+
+    fecharModalUsuario() {
+      this.showModalUsuario = false;
+      this.usuarioSelecionado = {
+        nome: "",
+        email: "",
+        senha: "",
+        confirmarSenha: "",
+      };
+    },
+
+    formatarValor(valor) {
+      if (valor === undefined || valor === null) {
+        return "0,00";
+      }
+      return valor.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    },
+
+    formatarData(data) {
+      if (!data) return "Data não disponível";
+
+      const options = { day: "2-digit", month: "2-digit", year: "numeric" };
+      return new Date(data).toLocaleDateString("pt-BR", options);
+    },
+
+    formatarDataInput(data) {
+      if (!data) return "";
+
+      const year = data.getFullYear();
+      const month = String(data.getMonth() + 1).padStart(2, "0");
+      const day = String(data.getDate()).padStart(2, "0");
+      console.log("formatarDataInput", data, `${year}-${month}-${day}`);
+      return `${year}-${month}-${day}`;
+    },
+
     getStatusClass(status) {
       const classes = {
         ATIVA: "badge bg-success",
@@ -521,79 +1410,6 @@ export default {
         PENDENTE: "badge bg-warning text-dark",
       };
       return classes[status] || "badge bg-secondary";
-    },
-    novaCampanha() {
-      alert("Funcionalidade de criar nova campanha será implementada!");
-    },
-    editarCampanha(campanha) {
-      alert(`Editar campanha: ${campanha.titulo}`);
-    },
-    excluirCampanha(campanha) {
-      if (
-        confirm(
-          `Tem certeza que deseja excluir a campanha "${campanha.titulo}"?`
-        )
-      ) {
-        alert("Campanha excluída com sucesso!");
-      }
-    },
-    verDoacao(doacao) {
-      alert(`Ver detalhes da doação: ${doacao.id}`);
-    },
-    confirmarDoacao(doacao) {
-      if (
-        confirm(`Confirmar doação de R$ ${this.formatarValor(doacao.valor)}?`)
-      ) {
-        alert("Doação confirmada com sucesso!");
-        doacao.status = "CONFIRMADA";
-      }
-    },
-    cancelarDoacao(doacao) {
-      if (
-        confirm(`Cancelar doação de R$ ${this.formatarValor(doacao.valor)}?`)
-      ) {
-        alert("Doação cancelada com sucesso!");
-        doacao.status = "CANCELADA";
-      }
-    },
-    novaAlocacao() {
-      alert("Funcionalidade de criar nova alocação será implementada!");
-    },
-    verAlocacao(alocacao) {
-      alert(`Ver detalhes da alocação: ${alocacao.tituloAlocacao}`);
-    },
-    editarAlocacao(alocacao) {
-      alert(`Editar alocação: ${alocacao.tituloAlocacao}`);
-    },
-    excluirAlocacao(alocacao) {
-      if (
-        confirm(
-          `Tem certeza que deseja excluir a alocação "${alocacao.tituloAlocacao}"?`
-        )
-      ) {
-        alert("Alocação excluída com sucesso!");
-      }
-    },
-    novoUsuario() {
-      alert("Funcionalidade de criar novo administrador será implementada!");
-    },
-    verUsuario(usuario) {
-      alert(`Ver detalhes do usuário: ${usuario.nome}`);
-    },
-    alterarStatus(usuario) {
-      const novoStatus = usuario.ativo ? "inativar" : "ativar";
-      if (
-        confirm(
-          `Tem certeza que deseja ${novoStatus} o usuário "${usuario.nome}"?`
-        )
-      ) {
-        usuario.ativo = !usuario.ativo;
-        alert(
-          `Usuário ${
-            novoStatus === "ativar" ? "ativado" : "inativado"
-          } com sucesso!`
-        );
-      }
     },
   },
 };
@@ -612,5 +1428,17 @@ export default {
 .nav-tabs .nav-link.active {
   color: #007bff;
   font-weight: 500;
+}
+
+.modal {
+  transition: all 0.3s ease;
+}
+
+.card {
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
 }
 </style>

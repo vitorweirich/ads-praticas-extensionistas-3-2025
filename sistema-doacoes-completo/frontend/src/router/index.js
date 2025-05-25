@@ -9,6 +9,7 @@ import PerfilView from "../views/PerfilView.vue";
 import AdminView from "../views/AdminView.vue";
 import NotFoundView from "../views/NotFoundView.vue";
 import CampanhaDetalheView from "../views/CampanhaDetalheView.vue";
+import AdministracaoCampanhaView from "../views/AdministracaoCampanhaView.vue";
 
 Vue.use(VueRouter);
 
@@ -55,13 +56,17 @@ const routes = [
     component: AdminView,
     meta: { requiresAuth: true, requiresAdmin: true },
   },
-  // Adicionar rota para página não encontrada
+  {
+    path: "/admin/campanhas",
+    name: "admin-campanhas",
+    component: AdministracaoCampanhaView,
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
   {
     path: "/404",
     name: "notFound",
     component: NotFoundView,
   },
-  // Redirecionar qualquer rota não encontrada para a página 404
   {
     path: "*",
     redirect: "/404",

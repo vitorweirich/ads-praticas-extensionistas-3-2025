@@ -418,8 +418,7 @@ export default {
         });
     },
     carregarDoacoesRecentes() {
-      // Simulação de doações recentes - em um ambiente real, isso viria da API
-      // Você pode implementar a chamada real à API quando disponível
+      // TODO: Implementar chamada à API para carregar doações recentes
       this.doacoesRecentes = [
         {
           doador: { nome: "Maria Silva" },
@@ -511,7 +510,6 @@ export default {
           this.doacaoLoading = false;
           this.showDoacaoModal = false;
 
-          // Resetar formulário
           this.doacao = {
             valor: 50,
             anonimo: false,
