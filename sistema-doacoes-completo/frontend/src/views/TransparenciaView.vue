@@ -213,7 +213,7 @@ export default {
     formatarValor,
     formatarData,
     getCampanhaNome(id) {
-      const campanha = this.campanhas.find((c) => c.id === id);
+      const campanha = this.campanhas.campanhas.find((c) => c.id === id);
       return campanha ? campanha.titulo : "Campanha não encontrada";
     },
     verComprovante(alocacao) {

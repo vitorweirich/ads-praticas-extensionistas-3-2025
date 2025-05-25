@@ -136,6 +136,16 @@ public class DoacaoController {
         List<Doacao> doacoes = doacaoRepository.findByCampanhaId(id);
         return ResponseEntity.ok(doacoes);
     }
+    
+    @GetMapping("/usuario/atual")
+	@PreAuthorize("hasRole('DOADOR') or hasRole('ADMINISTRADOR')")
+	public ResponseEntity<?> listarDoacoesUsuarioAtual(Authentication authentication) {
+	    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+	    Long userId = userDetails.getId();
+	    
+	    List<Doacao> doacoes = doacaoRepository.findByDoadorId(userId);
+	    return ResponseEntity.ok(doacoes);
+	}
 
     @PutMapping("/{id}/confirmar")
     @PreAuthorize("hasRole('ADMINISTRADOR')")

@@ -1,292 +1,308 @@
 <template>
   <div class="perfil-view">
-    <div class="row">
-      <div class="col-md-4 mb-4">
-        <div class="card">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Meu Perfil</h5>
-          </div>
-          <div class="card-body">
-            <div class="text-center mb-4">
-              <div class="avatar-circle mb-3">
-                <span class="avatar-initials">{{ iniciais }}</span>
+    <div class="container py-5">
+      <div class="row">
+        <!-- Sidebar / Menu lateral -->
+        <div class="col-lg-3 mb-4">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <div class="text-center mb-4">
+                <div class="avatar-placeholder mb-3">
+                  <span>{{ iniciais }}</span>
+                </div>
+                <h5 class="mb-1">{{ usuario.nome }}</h5>
+                <p class="text-muted mb-0">{{ usuario.email }}</p>
               </div>
-              <h4>{{ currentUser.nome }}</h4>
-              <p class="text-muted">{{ currentUser.email }}</p>
-              <span class="badge bg-primary">{{ tipoUsuario }}</span>
-            </div>
 
-            <div class="mb-3">
-              <button
-                class="btn btn-outline-primary w-100"
-                @click="editarPerfil"
-              >
-                <i class="fas fa-user-edit"></i> Editar Perfil
-              </button>
-            </div>
-
-            <div class="mb-3">
-              <button
-                class="btn btn-outline-secondary w-100"
-                @click="alterarSenha"
-              >
-                <i class="fas fa-key"></i> Alterar Senha
-              </button>
+              <div class="list-group list-group-flush">
+                <button
+                  class="list-group-item list-group-item-action"
+                  :class="{ active: activeTab === 'perfil' }"
+                  @click="activeTab = 'perfil'"
+                >
+                  <i class="fas fa-user me-2"></i> Meu Perfil
+                </button>
+                <button
+                  class="list-group-item list-group-item-action"
+                  :class="{ active: activeTab === 'doacoes' }"
+                  @click="activeTab = 'doacoes'"
+                >
+                  <i class="fas fa-hand-holding-heart me-2"></i> Minhas Doações
+                </button>
+                <button
+                  class="list-group-item list-group-item-action"
+                  :class="{ active: activeTab === 'senha' }"
+                  @click="activeTab = 'senha'"
+                >
+                  <i class="fas fa-lock me-2"></i> Alterar Senha
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="col-md-8">
-        <div class="card mb-4">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Informações Pessoais</h5>
-          </div>
-          <div class="card-body">
-            <form v-if="modoEdicao" @submit.prevent="salvarPerfil">
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="nome" class="form-label">Nome Completo</label>
+        <!-- Conteúdo principal -->
+        <div class="col-lg-9">
+          <!-- Aba de Perfil -->
+          <div v-if="activeTab === 'perfil'" class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+              <h5 class="mb-0">Informações Pessoais</h5>
+            </div>
+            <div class="card-body p-4">
+              <div
+                v-if="successMessage"
+                class="alert alert-success alert-dismissible fade show"
+                role="alert"
+              >
+                {{ successMessage }}
+                <button
+                  type="button"
+                  class="btn-close"
+                  @click="successMessage = ''"
+                ></button>
+              </div>
+
+              <div
+                v-if="errorMessage"
+                class="alert alert-danger alert-dismissible fade show"
+                role="alert"
+              >
+                {{ errorMessage }}
+                <button
+                  type="button"
+                  class="btn-close"
+                  @click="errorMessage = ''"
+                ></button>
+              </div>
+
+              <form @submit.prevent="atualizarPerfil">
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label for="nome" class="form-label">Nome Completo</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="nome"
+                      v-model="formPerfil.nome"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      id="email"
+                      v-model="formPerfil.email"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label for="telefone" class="form-label">Telefone</label>
+                    <input
+                      type="tel"
+                      class="form-control"
+                      id="telefone"
+                      v-model="formPerfil.telefone"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="cpf" class="form-label">CPF</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="cpf"
+                      v-model="formPerfil.cpf"
+                      disabled
+                    />
+                    <small class="form-text text-muted"
+                      >O CPF não pode ser alterado.</small
+                    >
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="endereco" class="form-label">Endereço</label>
                   <input
                     type="text"
                     class="form-control"
-                    id="nome"
-                    v-model="perfilEditado.nome"
-                    required
+                    id="endereco"
+                    v-model="formPerfil.endereco"
                   />
                 </div>
-                <div class="col-md-6 mb-3">
-                  <label for="email" class="form-label">Email</label>
-                  <input
-                    type="email"
-                    class="form-control"
-                    id="email"
-                    v-model="perfilEditado.email"
-                    required
-                    disabled
-                  />
+
+                <div class="d-flex justify-content-end">
+                  <button
+                    type="submit"
+                    class="btn btn-primary"
+                    :disabled="loadingPerfil"
+                  >
+                    <span
+                      v-if="loadingPerfil"
+                      class="spinner-border spinner-border-sm me-2"
+                      role="status"
+                    ></span>
+                    Salvar Alterações
+                  </button>
                 </div>
-              </div>
+              </form>
+            </div>
+          </div>
 
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="telefone" class="form-label">Telefone</label>
-                  <input
-                    type="tel"
-                    class="form-control"
-                    id="telefone"
-                    v-model="perfilEditado.telefone"
-                  />
+          <!-- Aba de Doações -->
+          <div v-if="activeTab === 'doacoes'" class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+              <h5 class="mb-0">Minhas Doações</h5>
+            </div>
+            <div class="card-body p-4">
+              <div v-if="loadingDoacoes" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Carregando...</span>
                 </div>
-                <div class="col-md-6 mb-3">
-                  <label for="cpfCnpj" class="form-label">CPF/CNPJ</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="cpfCnpj"
-                    v-model="perfilEditado.cpfCnpj"
-                  />
+                <p class="mt-3">Carregando suas doações...</p>
+              </div>
+
+              <div v-else-if="doacoes.length === 0" class="text-center py-5">
+                <i class="fas fa-donate fa-4x text-muted mb-3"></i>
+                <h5>Você ainda não fez nenhuma doação</h5>
+                <p class="text-muted">Que tal ajudar uma campanha hoje?</p>
+                <router-link to="/portal" class="btn btn-primary mt-2">
+                  Ver Campanhas
+                </router-link>
+              </div>
+
+              <div v-else>
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Campanha</th>
+                        <th>Valor</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(doacao, index) in doacoes" :key="index">
+                        <td>{{ doacao.campanha.titulo }}</td>
+                        <td>R$ {{ formatarValor(doacao.valor) }}</td>
+                        <td>{{ formatarData(doacao.dataHora) }}</td>
+                        <td>
+                          <span :class="getStatusClass(doacao.status)">
+                            {{ doacao.status }}
+                          </span>
+                        </td>
+                        <td>
+                          <router-link
+                            :to="{
+                              name: 'campanha-detalhe',
+                              params: { id: doacao.campanha.id },
+                            }"
+                            class="btn btn-sm btn-outline-primary"
+                          >
+                            <i class="fas fa-eye"></i>
+                          </router-link>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-              </div>
-
-              <div class="mb-3">
-                <label for="endereco" class="form-label">Endereço</label>
-                <textarea
-                  class="form-control"
-                  id="endereco"
-                  v-model="perfilEditado.endereco"
-                  rows="2"
-                ></textarea>
-              </div>
-
-              <div class="d-flex justify-content-end">
-                <button
-                  type="button"
-                  class="btn btn-secondary me-2"
-                  @click="cancelarEdicao"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  class="btn btn-primary"
-                  :disabled="loading"
-                >
-                  <span
-                    v-if="loading"
-                    class="spinner-border spinner-border-sm"
-                    role="status"
-                    aria-hidden="true"
-                  ></span>
-                  Salvar
-                </button>
-              </div>
-            </form>
-
-            <div v-else>
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <p class="mb-1"><strong>Telefone:</strong></p>
-                  <p>{{ currentUser.telefone || "Não informado" }}</p>
-                </div>
-                <div class="col-md-6">
-                  <p class="mb-1"><strong>CPF/CNPJ:</strong></p>
-                  <p>{{ currentUser.cpfCnpj || "Não informado" }}</p>
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <p class="mb-1"><strong>Endereço:</strong></p>
-                <p>{{ currentUser.endereco || "Não informado" }}</p>
-              </div>
-
-              <div class="mb-3">
-                <p class="mb-1"><strong>Data de Cadastro:</strong></p>
-                <p>{{ formatarData(currentUser.dataCadastro) }}</p>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="card">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Minhas Doações</h5>
-          </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover mb-0">
-                <thead>
-                  <tr>
-                    <th>Campanha</th>
-                    <th>Valor</th>
-                    <th>Data</th>
-                    <th>Status</th>
-                    <th>Comprovante</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-if="minhasDoacoes.length === 0">
-                    <td colspan="5" class="text-center py-3">
-                      <p v-if="loadingDoacoes" class="mb-0">
-                        <span
-                          class="spinner-border spinner-border-sm"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        Carregando suas doações...
-                      </p>
-                      <p v-else class="mb-0">
-                        Você ainda não realizou nenhuma doação.
-                      </p>
-                    </td>
-                  </tr>
-                  <tr v-for="doacao in minhasDoacoes" :key="doacao.id">
-                    <td>{{ doacao.campanha.titulo }}</td>
-                    <td>R$ {{ formatarValor(doacao.valor) }}</td>
-                    <td>{{ formatarData(doacao.dataHora) }}</td>
-                    <td>
-                      <span :class="getStatusClass(doacao.status)">{{
-                        doacao.status
-                      }}</span>
-                    </td>
-                    <td>
-                      <button
-                        v-if="doacao.comprovante"
-                        class="btn btn-sm btn-outline-primary"
-                      >
-                        <i class="fas fa-file-alt"></i> Ver
-                      </button>
-                      <span v-else>-</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <!-- Aba de Alterar Senha -->
+          <div v-if="activeTab === 'senha'" class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+              <h5 class="mb-0">Alterar Senha</h5>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div
-      class="modal fade"
-      id="alterarSenhaModal"
-      tabindex="-1"
-      aria-labelledby="alterarSenhaModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="alterarSenhaModalLabel">
-              Alterar Senha
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="salvarSenha">
-              <div class="mb-3">
-                <label for="senhaAtual" class="form-label">Senha Atual</label>
-                <input
-                  type="password"
-                  class="form-control"
-                  id="senhaAtual"
-                  v-model="senhas.atual"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="novaSenha" class="form-label">Nova Senha</label>
-                <input
-                  type="password"
-                  class="form-control"
-                  id="novaSenha"
-                  v-model="senhas.nova"
-                  required
-                />
-                <small class="form-text text-muted"
-                  >A senha deve ter pelo menos 6 caracteres</small
-                >
-              </div>
-              <div class="mb-3">
-                <label for="confirmarSenha" class="form-label"
-                  >Confirmar Nova Senha</label
-                >
-                <input
-                  type="password"
-                  class="form-control"
-                  id="confirmarSenha"
-                  v-model="senhas.confirmar"
-                  required
-                />
-              </div>
-              <div class="d-flex justify-content-end">
+            <div class="card-body p-4">
+              <div
+                v-if="successMessageSenha"
+                class="alert alert-success alert-dismissible fade show"
+                role="alert"
+              >
+                {{ successMessageSenha }}
                 <button
                   type="button"
-                  class="btn btn-secondary me-2"
-                  data-bs-dismiss="modal"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  class="btn btn-primary"
-                  :disabled="loadingSenha"
-                >
-                  <span
-                    v-if="loadingSenha"
-                    class="spinner-border spinner-border-sm"
-                    role="status"
-                    aria-hidden="true"
-                  ></span>
-                  Salvar
-                </button>
+                  class="btn-close"
+                  @click="successMessageSenha = ''"
+                ></button>
               </div>
-            </form>
+
+              <div
+                v-if="errorMessageSenha"
+                class="alert alert-danger alert-dismissible fade show"
+                role="alert"
+              >
+                {{ errorMessageSenha }}
+                <button
+                  type="button"
+                  class="btn-close"
+                  @click="errorMessageSenha = ''"
+                ></button>
+              </div>
+
+              <form @submit.prevent="alterarSenha">
+                <div class="mb-3">
+                  <label for="senhaAtual" class="form-label">Senha Atual</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="senhaAtual"
+                    v-model="formSenha.senhaAtual"
+                    required
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="novaSenha" class="form-label">Nova Senha</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="novaSenha"
+                    v-model="formSenha.novaSenha"
+                    required
+                    minlength="6"
+                  />
+                  <small class="form-text text-muted"
+                    >A senha deve ter pelo menos 6 caracteres.</small
+                  >
+                </div>
+
+                <div class="mb-3">
+                  <label for="confirmarSenha" class="form-label"
+                    >Confirmar Nova Senha</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="confirmarSenha"
+                    v-model="formSenha.confirmarSenha"
+                    required
+                  />
+                </div>
+
+                <div class="d-flex justify-content-end">
+                  <button
+                    type="submit"
+                    class="btn btn-primary"
+                    :disabled="loadingSenha || !senhasIguais || !senhaValida"
+                  >
+                    <span
+                      v-if="loadingSenha"
+                      class="spinner-border spinner-border-sm me-2"
+                      role="status"
+                    ></span>
+                    Alterar Senha
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -295,45 +311,186 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
-import * as bootstrap from "bootstrap";
-import { formatarValor, formatarData } from "../utils";
+import axios from "axios";
 
 export default {
   name: "PerfilView",
   data() {
     return {
-      modoEdicao: false,
-      perfilEditado: {},
-      loading: false,
-      loadingDoacoes: true,
+      activeTab: "perfil",
+      usuario: this.$store.getters.currentUser || {},
+      doacoes: [],
+      loadingDoacoes: false,
+      loadingPerfil: false,
       loadingSenha: false,
-      minhasDoacoes: [],
-      senhas: {
-        atual: "",
-        nova: "",
-        confirmar: "",
+      successMessage: "",
+      errorMessage: "",
+      successMessageSenha: "",
+      errorMessageSenha: "",
+      formPerfil: {
+        nome: "",
+        email: "",
+        telefone: "",
+        cpf: "",
+        endereco: "",
+      },
+      formSenha: {
+        senhaAtual: "",
+        novaSenha: "",
+        confirmarSenha: "",
       },
     };
   },
   computed: {
-    ...mapGetters(["currentUser", "isAdmin"]),
     iniciais() {
-      if (!this.currentUser.nome) return "?";
-      return this.currentUser.nome
+      if (!this.usuario.nome) return "?";
+      return this.usuario.nome
         .split(" ")
         .map((n) => n[0])
         .slice(0, 2)
         .join("")
         .toUpperCase();
     },
-    tipoUsuario() {
-      return this.isAdmin ? "Administrador" : "Doador";
+    senhasIguais() {
+      return this.formSenha.novaSenha === this.formSenha.confirmarSenha;
+    },
+    senhaValida() {
+      return this.formSenha.novaSenha.length >= 6;
     },
   },
+  created() {
+    this.carregarDadosUsuario();
+    this.carregarDoacoes();
+  },
   methods: {
-    formatarValor,
-    formatarData,
+    carregarDadosUsuario() {
+      // Preencher o formulário com os dados do usuário atual
+      this.formPerfil.nome = this.usuario.nome || "";
+      this.formPerfil.email = this.usuario.email || "";
+      this.formPerfil.telefone = this.usuario.telefone || "";
+      this.formPerfil.cpf = this.usuario.cpf || "";
+      this.formPerfil.endereco = this.usuario.endereco || "";
+    },
+    carregarDoacoes() {
+      this.loadingDoacoes = true;
+
+      axios
+        .get(`${process.env.VUE_APP_API_BASE_URL}/api/doacoes/usuario/atual`)
+        .then((response) => {
+          this.doacoes = response.data;
+          this.loadingDoacoes = false;
+        })
+        .catch((error) => {
+          console.error("Erro ao carregar doações:", error);
+          this.loadingDoacoes = false;
+        });
+    },
+    atualizarPerfil() {
+      this.loadingPerfil = true;
+      this.successMessage = "";
+      this.errorMessage = "";
+
+      const usuarioAtualizado = {
+        nome: this.formPerfil.nome,
+        email: this.formPerfil.email,
+        telefone: this.formPerfil.telefone,
+        endereco: this.formPerfil.endereco,
+      };
+
+      axios
+        .put(
+          `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/${this.usuario.id}`,
+          usuarioAtualizado
+        )
+        .then(() => {
+          this.loadingPerfil = false;
+          this.successMessage = "Perfil atualizado com sucesso!";
+
+          // Atualizar dados do usuário no store
+          const updatedUser = {
+            ...this.usuario,
+            nome: usuarioAtualizado.nome,
+            email: usuarioAtualizado.email,
+            telefone: usuarioAtualizado.telefone,
+            endereco: usuarioAtualizado.endereco,
+          };
+
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          this.$store.commit("auth_success", {
+            token: this.$store.state.token,
+            user: updatedUser,
+          });
+
+          // Atualizar dados locais
+          this.usuario = updatedUser;
+        })
+        .catch((error) => {
+          console.error("Erro ao atualizar perfil:", error);
+          this.loadingPerfil = false;
+          this.errorMessage =
+            error.response?.data?.message ||
+            "Erro ao atualizar perfil. Tente novamente.";
+        });
+    },
+    alterarSenha() {
+      if (!this.senhasIguais) {
+        this.errorMessageSenha = "As senhas não coincidem.";
+        return;
+      }
+
+      if (!this.senhaValida) {
+        this.errorMessageSenha = "A senha deve ter pelo menos 6 caracteres.";
+        return;
+      }
+
+      this.loadingSenha = true;
+      this.successMessageSenha = "";
+      this.errorMessageSenha = "";
+
+      const senhas = {
+        senhaAtual: this.formSenha.senhaAtual,
+        novaSenha: this.formSenha.novaSenha,
+      };
+
+      axios
+        .put(
+          `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/${this.usuario.id}/senha`,
+          senhas
+        )
+        .then(() => {
+          this.loadingSenha = false;
+          this.successMessageSenha = "Senha alterada com sucesso!";
+
+          // Limpar formulário
+          this.formSenha = {
+            senhaAtual: "",
+            novaSenha: "",
+            confirmarSenha: "",
+          };
+        })
+        .catch((error) => {
+          console.error("Erro ao alterar senha:", error);
+          this.loadingSenha = false;
+          this.errorMessageSenha =
+            error.response?.data?.message ||
+            "Erro ao alterar senha. Tente novamente.";
+        });
+    },
+    formatarValor(valor) {
+      if (valor === undefined || valor === null) {
+        return "0,00";
+      }
+      return valor.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    },
+    formatarData(data) {
+      if (!data) return "Data não disponível";
+
+      const options = { day: "2-digit", month: "2-digit", year: "numeric" };
+      return new Date(data).toLocaleDateString("pt-BR", options);
+    },
     getStatusClass(status) {
       const classes = {
         CONFIRMADA: "badge bg-success",
@@ -342,117 +499,53 @@ export default {
       };
       return classes[status] || "badge bg-secondary";
     },
-    editarPerfil() {
-      this.perfilEditado = { ...this.currentUser };
-      this.modoEdicao = true;
-    },
-    cancelarEdicao() {
-      this.modoEdicao = false;
-    },
-    salvarPerfil() {
-      this.loading = true;
-
-      setTimeout(() => {
-        // TODO: Revisar
-        // this.$store.commit('update_user', this.perfilEditado)
-
-        this.modoEdicao = false;
-        this.loading = false;
-
-        alert("Perfil atualizado com sucesso!");
-      }, 1000);
-    },
-    alterarSenha() {
-      this.senhas = {
-        atual: "",
-        nova: "",
-        confirmar: "",
-      };
-
-      const myModal = new bootstrap.Modal(
-        document.getElementById("alterarSenhaModal")
-      );
-      myModal.show();
-    },
-    salvarSenha() {
-      if (this.senhas.nova !== this.senhas.confirmar) {
-        alert("As senhas não coincidem!");
-        return;
-      }
-
-      if (this.senhas.nova.length < 6) {
-        alert("A nova senha deve ter pelo menos 6 caracteres!");
-        return;
-      }
-
-      this.loadingSenha = true;
-
-      // TODO: Implementar chamada à API para alterar a senha
-      setTimeout(() => {
-        this.loadingSenha = false;
-
-        const myModal = bootstrap.Modal.getInstance(
-          document.getElementById("alterarSenhaModal")
-        );
-        myModal.hide();
-
-        alert("Senha alterada com sucesso!");
-      }, 1000);
-    },
-    carregarDoacoes() {
-      this.loadingDoacoes = true;
-
-      // TODO: Buscar dados reais da API
-      setTimeout(() => {
-        this.minhasDoacoes = [
-          {
-            id: 1,
-            campanha: { id: 1, titulo: "Campanha de Saúde" },
-            valor: 100.0,
-            dataHora: "2025-05-15T10:30:00",
-            status: "CONFIRMADA",
-            comprovante: "https://example.com/comprovante1.pdf",
-          },
-          {
-            id: 2,
-            campanha: { id: 2, titulo: "Educação para Todos" },
-            valor: 50.0,
-            dataHora: "2025-05-10T14:45:00",
-            status: "CONFIRMADA",
-            comprovante: "https://example.com/comprovante2.pdf",
-          },
-        ];
-
-        this.loadingDoacoes = false;
-      }, 1000);
-    },
-  },
-  created() {
-    this.carregarDoacoes();
   },
 };
 </script>
 
 <style scoped>
 .perfil-view {
-  padding-top: 20px;
-  padding-bottom: 30px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 }
 
-.avatar-circle {
-  width: 100px;
-  height: 100px;
-  background-color: #007bff;
+.avatar-placeholder {
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
+  background-color: #007bff;
+  color: white;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
   margin: 0 auto;
 }
 
-.avatar-initials {
-  font-size: 40px;
+.list-group-item {
+  border: none;
+  padding: 0.75rem 1rem;
+  margin-bottom: 5px;
+  border-radius: 0.5rem !important;
+  transition: all 0.2s;
+}
+
+.list-group-item:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.list-group-item.active {
+  background-color: #007bff;
   color: white;
-  font-weight: bold;
+}
+
+.card {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.btn-outline-primary {
+  border-radius: 0.5rem;
 }
 </style>
