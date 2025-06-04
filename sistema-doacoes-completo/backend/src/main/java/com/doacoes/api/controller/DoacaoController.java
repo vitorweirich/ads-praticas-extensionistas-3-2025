@@ -2,6 +2,7 @@ package com.doacoes.api.controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -144,7 +145,7 @@ public class DoacaoController {
                         }
                         return doacaoLimitada;
                     })
-                    .toList();
+                    .collect(Collectors.toList());
                 return ResponseEntity.ok(doacoesLimitadas);
             }
         } else {
@@ -164,7 +165,7 @@ public class DoacaoController {
                     }
                     return doacaoLimitada;
                 })
-                .toList();
+                .collect(Collectors.toList());
             return ResponseEntity.ok(doacoesLimitadas);
         }
     
