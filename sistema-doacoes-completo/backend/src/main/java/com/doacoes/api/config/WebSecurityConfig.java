@@ -69,6 +69,7 @@ public class WebSecurityConfig {
                     .antMatchers("/api/auth/**").permitAll()
                     .antMatchers("/api/campanhas/publicas/**").permitAll()
                     .antMatchers("/api/campanhas/{id}").permitAll()
+                    .antMatchers("/api/doacoes/campanha/{id}").permitAll()
                     .antMatchers("/api/transparencia/publica/**").permitAll()
                     .anyRequest().authenticated()
                 );

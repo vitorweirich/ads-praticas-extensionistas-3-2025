@@ -79,7 +79,6 @@ const router = new VueRouter({
   routes,
 });
 
-// TODO: Revisar
 router.beforeEach((to, from, next) => {
   const loggedIn = localStorage.getItem("user");
 

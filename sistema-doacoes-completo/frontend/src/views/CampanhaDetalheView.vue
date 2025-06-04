@@ -418,27 +418,18 @@ export default {
         });
     },
     carregarDoacoesRecentes() {
-      // TODO: Implementar chamada à API para carregar doações recentes
-      this.doacoesRecentes = [
-        {
-          doador: { nome: "Maria Silva" },
-          valor: 100.0,
-          dataHora: "2025-05-20T14:30:00",
-          anonimo: false,
-        },
-        {
-          doador: { nome: "João Santos" },
-          valor: 50.0,
-          dataHora: "2025-05-19T10:15:00",
-          anonimo: false,
-        },
-        {
-          doador: null,
-          valor: 200.0,
-          dataHora: "2025-05-18T16:45:00",
-          anonimo: true,
-        },
-      ];
+      axios
+        .get(
+          `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/campanha/${this.campanhaId}`
+        )
+        .then((response) => {
+          // O backend já retorna as doações ordenadas e limitadas
+          this.doacoesRecentes = response.data;
+        })
+        .catch(() => {
+          // Show empty donations list in case of error
+          this.doacoesRecentes = [];
+        });
     },
     formatarValor,
     formatarData,

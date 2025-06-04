@@ -149,7 +149,7 @@
                   >
                     <h5 class="card-title">Gerenciar Campanhas</h5>
                     <div>
-                      <!-- TODO: Validar se faz sentido ter uma tela de campanhas (ela não mas não esta completa) 
+                      <!-- TODO: Validar se faz sentido ter uma tela de campanhas (ela existe não mas não esta completa) 
                       <router-link
                         to="/admin/campanhas"
                         class="btn btn-info me-2"

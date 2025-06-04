@@ -121,20 +121,53 @@ public class DoacaoController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
             
-            if (!userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"))) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Erro: Não autorizado!"));
+            List<Doacao> doacoes = doacaoRepository.findByCampanhaId(id);
+            doacoes.sort((a, b) -> b.getDataHora().compareTo(a.getDataHora()));
+            
+            if (isAdmin) {
+                return ResponseEntity.ok(doacoes);
+            } else {
+                List<Doacao> doacoesLimitadas = doacoes.stream()
+                    .limit(5)
+                    .map(doacao -> {
+                        Doacao doacaoLimitada = new Doacao();
+                        doacaoLimitada.setDataHora(doacao.getDataHora());
+                        doacaoLimitada.setValor(doacao.getValor());
+                        doacaoLimitada.setAnonimo(doacao.isAnonimo());
+                        if (!doacao.isAnonimo() && doacao.getDoador() != null) {
+                            Usuario doadorLimitado = new Usuario();
+                            doadorLimitado.setNome(doacao.getDoador().getNome());
+                            doacaoLimitada.setDoador(doadorLimitado);
+                        }
+                        return doacaoLimitada;
+                    })
+                    .toList();
+                return ResponseEntity.ok(doacoesLimitadas);
             }
         } else {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro: Não autorizado!"));
+            List<Doacao> doacoes = doacaoRepository.findByCampanhaId(id);
+            doacoes.sort((a, b) -> b.getDataHora().compareTo(a.getDataHora()));
+            List<Doacao> doacoesLimitadas = doacoes.stream()
+                .limit(5)
+                .map(doacao -> {
+                    Doacao doacaoLimitada = new Doacao();
+                    doacaoLimitada.setDataHora(doacao.getDataHora());
+                    doacaoLimitada.setValor(doacao.getValor());
+                    doacaoLimitada.setAnonimo(doacao.isAnonimo());
+                    if (!doacao.isAnonimo() && doacao.getDoador() != null) {
+                        Usuario doadorLimitado = new Usuario();
+                        doadorLimitado.setNome(doacao.getDoador().getNome());
+                        doacaoLimitada.setDoador(doadorLimitado);
+                    }
+                    return doacaoLimitada;
+                })
+                .toList();
+            return ResponseEntity.ok(doacoesLimitadas);
         }
-        
-        List<Doacao> doacoes = doacaoRepository.findByCampanhaId(id);
-        return ResponseEntity.ok(doacoes);
+    
     }
     
     @GetMapping("/usuario/atual")
