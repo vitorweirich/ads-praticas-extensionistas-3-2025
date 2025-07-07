@@ -109,7 +109,7 @@ cd frontend
 yarn
 ```
 
-3. Configure a URL da API no arquivo `src/services/api.js` (se necessário):
+3. Configure a URL da API no arquivo `env.development` (se necessário):
 
 ```javascript
 // Já está configurado para apontar para http://localhost:8080
@@ -118,10 +118,10 @@ yarn
 4. Execute o frontend em modo de desenvolvimento:
 
 ```bash
-yarn serve
+yarn dev
 ```
 
-O frontend estará disponível em `http://localhost:3000`
+O frontend estará disponível em `http://localhost:3000/praticas-extensionistas/`
 
 5. Para gerar a versão de produção:
 

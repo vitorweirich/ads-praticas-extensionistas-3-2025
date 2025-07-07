@@ -10,7 +10,7 @@
 
 ### Projeto
 
-- Um sistema WEB de doações visando apoia a comunidade.
+- Um sistema WEB de doações visando apoiar a comunidade.
 
 Com os requisitos básicos de:
 
@@ -67,3 +67,11 @@ Com os requisitos básicos de:
 #### Comentários
 
 ![diagrama-sequencia-comentarios](diagramas/sequencia_comentarios.jpeg)
+
+## Codigo Fonte do sistema
+
+O sistema possui uma arquitetura cliente-servidor, com backend em Java Spring Boot, banco de dados PostgreSQL e frontend em Vue.js.
+Para mais detalhes veja o README.md no caminho `./sistema-doacoes-completo/README.md`, juntamente como todo o codigo fonte que é separado em pastas.
+
+- Frontend: `./sistema-doacoes-completo/frontend`
+- Backend: `./sistema-doacoes-completo/backend`
