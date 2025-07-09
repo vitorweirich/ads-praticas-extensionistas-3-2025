@@ -8,6 +8,8 @@ import javax.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +22,7 @@ import com.doacoes.api.model.Usuario;
 import com.doacoes.api.payload.form.AlterarUsuarioForm;
 import com.doacoes.api.payload.response.MessageResponse;
 import com.doacoes.api.repository.UsuarioRepository;
+import com.doacoes.api.security.services.UserDetailsImpl;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +41,14 @@ public class UsuarioController {
 		List<Usuario> allUsers = usuarioRepository.findAll();
 		
 		return ResponseEntity.ok(allUsers);
+	}
+	
+	@GetMapping("/atual")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> buscarUsuarioAtual(Authentication authentication) {
+		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+	    Long userId = userDetails.getId();
+		return ResponseEntity.ok(usuarioRepository.findById(userId).orElseThrow());
 	}
 	
 	@PutMapping("/{id}")

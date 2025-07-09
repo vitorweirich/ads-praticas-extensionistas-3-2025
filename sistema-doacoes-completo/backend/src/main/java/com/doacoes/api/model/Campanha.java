@@ -50,9 +50,6 @@ public class Campanha {
 
     private BigDecimal valorArrecadado;
 
-    // TODO: Validar se faz sentido manter ou remover
-    private LocalDate dataInicio;
-
     private LocalDate dataTermino;
 
     @Enumerated(EnumType.STRING)
@@ -73,10 +70,6 @@ public class Campanha {
 
     @PrePersist
     public void prePersist() {
-        // TODO: Avaliar se faz sentido setar esses valores dessa forma
-        // ou se deveria ser um fallback, ou seja, se o usuário não setar
-        // o valor, setar o padrão
-        dataInicio = LocalDate.now();
         valorArrecadado = BigDecimal.ZERO;
         status = StatusCampanha.ATIVA;
     }

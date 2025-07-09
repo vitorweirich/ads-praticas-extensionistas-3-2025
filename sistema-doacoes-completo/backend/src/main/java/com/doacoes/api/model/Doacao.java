@@ -43,8 +43,6 @@ public class Doacao {
 
     private String mensagemApoio;
 
-    private String comprovante;
-
     @PrePersist
     public void prePersist() {
         dataHora = LocalDateTime.now();

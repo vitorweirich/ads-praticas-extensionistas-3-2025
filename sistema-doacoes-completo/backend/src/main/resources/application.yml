@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/postgres}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/doacoesdb}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:12345678}
     driver-class-name: org.postgresql.Driver
@@ -23,9 +23,6 @@ app:
   jwt:
     secret: ${JWT_SECRET:doacoesSecretKey2025SystemSecurityTokenJWT}
     expiration: ${JWT_EXPIRATION:86400000}
-
-upload:
-  dir: ${UPLOAD_DIR:./uploads}
 
 server:
   port: ${SERVER_PORT:8080}

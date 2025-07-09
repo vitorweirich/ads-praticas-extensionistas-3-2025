@@ -364,11 +364,20 @@ export default {
   },
   methods: {
     carregarDadosUsuario() {
-      this.formPerfil.nome = this.usuario.nome || "";
-      this.formPerfil.email = this.usuario.email || "";
-      this.formPerfil.telefone = this.usuario.telefone || "";
-      this.formPerfil.cpf = this.usuario.cpf || "";
-      this.formPerfil.endereco = this.usuario.endereco || "";
+      axios
+        .get(`${process.env.VUE_APP_API_BASE_URL}/api/usuarios/atual`)
+        .then((response) => {
+          this.usuario = response.data;
+
+          this.formPerfil.nome = this.usuario.nome || "";
+          this.formPerfil.email = this.usuario.email || "";
+          this.formPerfil.telefone = this.usuario.telefone || "";
+          this.formPerfil.cpf = this.usuario.cpfCnpj || "";
+          this.formPerfil.endereco = this.usuario.endereco || "";
+        })
+        .catch((error) => {
+          console.error("Erro ao carregar usuario:", error);
+        });
     },
     carregarDoacoes() {
       this.loadingDoacoes = true;
