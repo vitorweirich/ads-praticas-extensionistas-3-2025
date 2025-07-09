@@ -68,6 +68,18 @@ Com os requisitos básicos de:
 
 ![diagrama-sequencia-comentarios](diagramas/sequencia_comentarios.jpeg)
 
+## Modelagem e DDL do Banco de Dados
+
+A modelagem do banco de dados foi realizada com base nos requisitos do sistema, utilizando o modelo entidade-relacionamento para definir as principais entidades e seus relacionamentos. A estrutura do banco foi implementada em PostgreSQL, e os scripts de criação das tabelas e relacionamentos estão disponíveis na pasta `./modelagem-banco-de-dados`.
+
+Arquivos disponíveis:
+
+- `modelagem-banco-de-dados/DDL.sql`: Script de criação das tabelas e constraints do banco.
+- `modelagem-banco-de-dados/init.script.sql`: Script de inicialização e inserção de dados exemplo.
+- `modelagem-banco-de-dados/relacionamento-entidades.jpeg`: Imagem do diagrama de relacionamento das entidades.
+
+![relacionamento-entidades](modelagem-banco-de-dados/relacionamento-entidades.jpeg)
+
 ## Codigo Fonte do sistema
 
 O sistema possui uma arquitetura cliente-servidor, com backend em Java Spring Boot, banco de dados PostgreSQL e frontend em Vue.js.
