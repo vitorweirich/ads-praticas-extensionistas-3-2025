@@ -1,0 +1,55 @@
+@startuml pacote_arquitetura
+skinparam packageStyle rectangle
+
+package "Aplicação (Sistema de Doações)" {
+
+  package "Backend (Spring Boot)" as backend {
+    [Controller] as Controller <<layer>>
+    [Service] as Service <<layer>>
+    [Repository] as Repository <<layer>>
+    [Domain_Entities] as Domain <<layer>>
+    [Config_Security] as Config <<layer>>
+  }
+
+  package "Frontend (Vue.js)" as frontend {
+    [Views] as Views <<layer>>
+    [Components] as Components <<layer>>
+    [Stores_Pinia] as Stores <<layer>>
+    [API_Services] as APIS <<layer>>
+    [Assets] as Assets <<layer>>
+  }
+
+  package "Infra / Persistência" as infra {
+    database "Postgres DB" as Postgres
+    [File Storage (S3/MinIO)] as FileStorage <<cloud>>
+    [Message Queue (opcional)] as MQ <<cloud>>
+  }
+
+  package "Integrações Externas" as external {
+    [Gateway de Pagamento] as Payment <<external>>
+    [SMTP / Email Service] as SMTP <<external>>
+    [Serviço de Notificações / SMS] as SMS <<external>>
+  }
+
+}
+
+' Dependências principais (backend)
+Controller --> Service
+Service --> Repository
+Repository --> Domain
+Controller ..> Config : Autenticação/Autorização
+
+' Fluxo frontend
+Views --> Components
+Views --> Stores
+Components --> APIS
+APIS --> Controller : HTTP/REST
+
+' Backend para infraestrutura e externos
+Service --> Postgres : JDBC
+Service --> FileStorage : SDK/HTTP
+Service --> Payment : HTTPS (webhooks)
+Service --> SMTP : SMTP / API
+Service --> SMS : Envio notificação
+
+@enduml

@@ -1,0 +1,47 @@
+@startuml deploy_arquitetura
+skinparam nodeMargin 20
+actor "Usuário (Navegador)" as Client
+
+node "Internet" {
+  [DNS / CDN] as dns
+}
+
+node "VPS - Host (Ubuntu)" as VPS {
+  node "Docker / Container Runtime" as docker
+
+  node "Coolify / Dokploy" as orchestrator
+
+  node "Rede Interna (bridge)" as network {
+    component "reverse-proxy (nginx/traefik)" as proxy
+    component "frontend: app (docker)" as fe
+    component "backend: api (docker)" as be
+    component "postgres: database (docker)" as db
+    artifact "Volume: pgdata (host volume)" as pgdata
+    artifact "Volume: uploads (host volume)" as uploads
+  }
+}
+
+node "Serviços Externos" as externals {
+  [Gateway de Pagamento] as payment
+  [SMTP / Email] as smtp
+}
+
+' Conexões
+Client --> dns : consulta DNS
+dns --> proxy : resolve domínio -> IP VPS
+Client --> proxy : HTTPS (443)
+proxy --> fe : HTTP interno
+fe --> be : HTTPS interno (API)
+be --> db : JDBC/SSL (5432)
+be --> payment : HTTPS (API)
+be --> smtp : SMTP / API
+
+' Observações de segurança e configuração
+note right of VPS
+  - Firewall: permitir 22 (SSH), 80/443 (HTTP/HTTPS)
+  - Postgres acessível apenas na rede interna Docker
+  - TLS: Let's Encrypt gerenciado pelo proxy (ou Coolify)
+  - Rede interna isola backend, frontend e banco de dados
+end note
+
+@enduml

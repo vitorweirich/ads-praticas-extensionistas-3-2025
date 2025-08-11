@@ -1,0 +1,60 @@
+@startuml devops_pipeline
+skinparam activityDiamondSize 12
+skinparam ArrowColor DarkBlue
+skinparam rectangle {
+  BackgroundColor White
+  BorderColor Black
+  RoundCorner 15
+}
+
+actor Desenvolvedor
+
+package "Código & Versionamento" {
+  rectangle "Repositório Git\n(GitHub/GitLab)" as Git
+}
+
+package "CI/CD" {
+  rectangle "CI Runner\n(GitHub Actions / GitLab CI)" as CI
+}
+
+package "Entrega de Artefatos" {
+  rectangle "Artifactory / Docker Registry" as Registry
+}
+
+package "Infra & Observabilidade" {
+  rectangle "VPS / Orquestrador\n(Coolify/Dokploy)" as Orchestrator
+  rectangle "Monitoramento & Logs" as Monitoring
+}
+
+' Fluxo principal
+Desenvolvedor --> Git : push / pull requests
+Git --> CI : webhook (push / merge)
+
+CI --> CI : executar testes unitários / integração
+CI --> CI : build backend (Maven)
+CI --> CI : build frontend (npm)
+CI --> CI : lint / security scans
+
+CI --> Registry : push imagens docker
+CI --> Registry : tag semântica (v1.2.3)
+
+Registry --> Orchestrator : pull imagens
+Orchestrator --> Orchestrator : deploy containers
+Orchestrator --> Monitoring : enviar métricas / logs
+Monitoring --> Desenvolvedor : alertas / dashboards
+
+' Notas
+note left of CI
+  - Branch strategy: feature/* -> main
+  - PR/MR -> pipeline obrigatória
+  - Protected branch: main
+  - Environments: staging, production
+end note
+
+note bottom of Orchestrator
+  - Rollback: usar tags anteriores
+  - Deploy azul/verde ou rolling
+  - Segredos no Orchestrator ou Vault
+end note
+
+@enduml
