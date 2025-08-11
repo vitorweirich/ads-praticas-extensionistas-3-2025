@@ -31,6 +31,14 @@
                 >Administração</router-link
               >
             </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                :href="`${baseUrl}/README.pdf`"
+                target="_blank"
+                >Sobre</a
+              >
+            </li>
           </ul>
           <ul class="navbar-nav">
             <template v-if="!isLoggedIn">
@@ -101,6 +109,9 @@ export default {
     this.$store.dispatch('checkToken');
   },
   computed: {
+    baseUrl() {
+      return process.env.BASE_URL;
+    },
     ...mapGetters(["isLoggedIn", "currentUser", "isAdmin"]),
   },
   methods: {
