@@ -32,10 +32,7 @@
               >
             </li>
             <li class="nav-item">
-              <a
-                class="nav-link"
-                :href="`${baseUrl}/README.pdf`"
-                target="_blank"
+              <a class="nav-link" :href="`/README.pdf`" target="_blank"
                 >Sobre</a
               >
             </li>
@@ -109,9 +106,6 @@ export default {
     this.$store.dispatch('checkToken');
   },
   computed: {
-    baseUrl() {
-      return process.env.BASE_URL;
-    },
     ...mapGetters(["isLoggedIn", "currentUser", "isAdmin"]),
   },
   methods: {
