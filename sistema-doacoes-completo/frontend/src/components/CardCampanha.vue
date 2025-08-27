@@ -11,18 +11,7 @@
     <div class="card-body">
       <h5 class="card-title">{{ campanha.titulo }}</h5>
       <p class="card-text">{{ campanha.descricao.substring(0, 100) }}...</p>
-      <div class="progress mb-3">
-        <div
-          class="progress-bar progress-bar-success"
-          role="progressbar"
-          :style="{ width: calcularProgresso(campanha) + '%' }"
-          :aria-valuenow="calcularProgresso(campanha)"
-          aria-valuemin="0"
-          aria-valuemax="100"
-        >
-          {{ calcularProgresso(campanha) }}%
-        </div>
-      </div>
+      <ProgressBar :value="calcularProgresso(campanha)" />
       <p class="text-muted">
         <small
           >Meta: R$ {{ formatarValor(campanha.metaFinanceira) }} | Arrecadado:
@@ -43,9 +32,11 @@
 
 <script>
 import { calcularProgresso, formatarValor } from "../utils";
+import ProgressBar from "./ProgressBar.vue";
 
 export default {
   name: "CardCampanha",
+  components: { ProgressBar },
   props: {
     campanha: {
       type: Object,

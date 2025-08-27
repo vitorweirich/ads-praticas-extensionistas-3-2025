@@ -71,15 +71,23 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <!-- Visão Desktop -->
                   <tr
                     v-for="(alocacao, index) in alocacoesFiltradas"
-                    :key="index"
+                    :key="`desktop-${index}`"
+                    class="d-none d-md-table-row"
                   >
-                    <td>{{ getCampanhaNome(alocacao.campanha.id) }}</td>
-                    <td>{{ alocacao.tituloAlocacao }}</td>
-                    <td>R$ {{ formatarValor(alocacao.valorAlocado) }}</td>
-                    <td>{{ formatarData(alocacao.dataAlocacao) }}</td>
-                    <td>
+                    <td class="align-middle">
+                      {{ getCampanhaNome(alocacao.campanha.id) }}
+                    </td>
+                    <td class="align-middle">{{ alocacao.tituloAlocacao }}</td>
+                    <td class="align-middle">
+                      R$ {{ formatarValor(alocacao.valorAlocado) }}
+                    </td>
+                    <td class="align-middle">
+                      {{ formatarData(alocacao.dataAlocacao) }}
+                    </td>
+                    <td class="align-middle">
                       <button
                         class="btn btn-sm btn-outline-primary"
                         @click="verComprovante(alocacao)"
@@ -88,6 +96,46 @@
                       </button>
                     </td>
                   </tr>
+
+                  <!-- Visão Mobile -->
+                  <tr
+                    v-for="(alocacao, index) in alocacoesFiltradas"
+                    :key="`mobile-${index}`"
+                    class="d-md-none"
+                  >
+                    <td colspan="5">
+                      <div class="mobile-alocacao card border-0">
+                        <div
+                          class="d-flex justify-content-between align-items-start"
+                        >
+                          <div>
+                            <h6 class="mb-1">{{ alocacao.tituloAlocacao }}</h6>
+                            <p class="mb-1 text-muted small">
+                              <strong>Campanha:</strong>
+                              {{ getCampanhaNome(alocacao.campanha.id) }}
+                            </p>
+                            <p class="mb-0 small">
+                              <strong>Valor:</strong>
+                              R$ {{ formatarValor(alocacao.valorAlocado) }}
+                              <span class="mx-2">•</span>
+                              <small class="text-muted">{{
+                                formatarData(alocacao.dataAlocacao)
+                              }}</small>
+                            </p>
+                          </div>
+                          <div class="text-end">
+                            <button
+                              class="btn btn-sm btn-outline-primary"
+                              @click="verComprovante(alocacao)"
+                            >
+                              <i class="fas fa-file-alt"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
                   <tr v-if="alocacoesFiltradas.length === 0">
                     <td colspan="5" class="text-center py-3">
                       <p v-if="loading" class="mb-0">
@@ -230,5 +278,31 @@ onMounted(() => {
 .transparencia-view {
   padding-top: 20px;
   padding-bottom: 30px;
+}
+
+/* Mobile compact row styling */
+.mobile-alocacao {
+  background: transparent;
+  padding: 8px 0;
+}
+
+/* Make table more compact on small screens */
+@media (max-width: 767.98px) {
+  .table thead {
+    display: none;
+  }
+
+  .table td {
+    border-top: none;
+  }
+
+  .mobile-alocacao h6 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .mobile-alocacao p.small {
+    margin-bottom: 0.25rem;
+  }
 }
 </style>

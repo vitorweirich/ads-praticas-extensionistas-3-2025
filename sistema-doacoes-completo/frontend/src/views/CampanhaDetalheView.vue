@@ -45,16 +45,11 @@
                   <i class="fas fa-calendar-alt me-2"></i>
                   Término: {{ formatarData(campanha.dataTermino) }}
                 </p>
-                <div class="progress mb-3" style="height: 10px">
-                  <div
-                    class="progress-bar bg-success"
-                    role="progressbar"
-                    :style="{ width: progressoPercentual + '%' }"
-                    :aria-valuenow="progressoPercentual"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                  ></div>
-                </div>
+                <ProgressBar
+                  :value="progressoPercentual"
+                  height="10px"
+                  barClass="bg-success"
+                />
                 <div class="d-flex justify-content-between mb-4">
                   <div>
                     <strong>Arrecadado:</strong> R$
@@ -350,6 +345,7 @@ import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import axios from "axios";
 import { formatarValor, formatarData } from "../utils";
+import ProgressBar from "../components/ProgressBar.vue";
 
 const route = useRoute();
 const store = useStore();
@@ -375,6 +371,8 @@ const progressoPercentual = computed(() => {
     (campanha.value.valorArrecadado / campanha.value.metaFinanceira) * 100;
   return Math.min(Math.round(percentual), 100);
 });
+
+// ...existing code...
 
 const diasRestantes = computed(() => {
   if (!campanha.value.dataTermino) return "N/A";
