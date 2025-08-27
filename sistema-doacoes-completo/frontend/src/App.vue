@@ -14,6 +14,7 @@
           aria-expanded="false"
           aria-label="Toggle navigation"
         >
+          <!-- TODO: No responsivo, esse botão apenas 'abre/colapsa' as opções e depois não fecha mais -->
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -98,24 +99,26 @@
 </template>
 
 <script setup lang="js">
-import { mapGetters } from "vuex";
+import { computed, onMounted } from 'vue'
+import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 
-export default {
-  name: "App",
-  created() {
-    this.$store.dispatch('checkToken');
-  },
-  computed: {
-    ...mapGetters(["isLoggedIn", "currentUser", "isAdmin"]),
-  },
-  methods: {
-    logout() {
-      this.$store.dispatch("logout").then(() => {
-        this.$router.push("/login");
-      });
-    },
-  },
-};
+const store = useStore()
+const router = useRouter()
+
+onMounted(() => {
+  store.dispatch('checkToken')
+})
+
+const isLoggedIn = computed(() => store.getters.isLoggedIn)
+const currentUser = computed(() => store.getters.currentUser)
+const isAdmin = computed(() => store.getters.isAdmin)
+
+function logout() {
+  store.dispatch('logout').then(() => {
+    router.push('/login')
+  })
+}
 </script>
 
 <style>

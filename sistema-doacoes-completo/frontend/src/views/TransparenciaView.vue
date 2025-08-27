@@ -18,7 +18,7 @@
             <select class="form-select" v-model="campanhaId">
               <option value="">Todas as campanhas</option>
               <option
-                v-for="campanha in campanhas"
+                v-for="campanha in campanhas.campanhas"
                 :key="campanha.id"
                 :value="campanha.id"
               >
@@ -177,62 +177,53 @@
   </div>
 </template>
 
-<script>
-import { mapState } from "vuex";
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import { useStore } from "vuex";
 import * as bootstrap from "bootstrap";
 import { formatarValor, formatarData } from "../utils";
 
-export default {
-  name: "TransparenciaView",
-  data() {
-    return {
-      campanhaId: "",
-      loading: true,
-      alocacaoSelecionada: null,
-    };
-  },
-  computed: {
-    ...mapState(["transparencia", "campanhas"]),
-    alocacoesFiltradas() {
-      if (!this.transparencia) return [];
+const store = useStore();
+const campanhaId = ref("");
+const loading = ref(true);
+const alocacaoSelecionada = ref(null);
 
-      return this.transparencia.filter((alocacao) => {
-        if (this.campanhaId) {
-          return alocacao.campanha.id === parseInt(this.campanhaId);
-        }
-        return true;
-      });
-    },
-    totalAlocado() {
-      return this.alocacoesFiltradas.reduce((total, alocacao) => {
-        return total + (alocacao.valorAlocado || 0);
-      }, 0);
-    },
-  },
-  methods: {
-    formatarValor,
-    formatarData,
-    getCampanhaNome(id) {
-      const campanha = this.campanhas.campanhas.find((c) => c.id === id);
-      return campanha ? campanha.titulo : "Campanha não encontrada";
-    },
-    verComprovante(alocacao) {
-      this.alocacaoSelecionada = alocacao;
-      const myModal = new bootstrap.Modal(
-        document.getElementById("comprovanteModal")
-      );
-      myModal.show();
-    },
-  },
-  created() {
-    Promise.all([
-      this.$store.dispatch("fetchCampanhas"),
-      this.$store.dispatch("fetchTransparencia"),
-    ]).finally(() => {
-      this.loading = false;
-    });
-  },
+const transparencia = computed(() => store.state.transparencia || []);
+const campanhas = computed(() => store.state.campanhas || { campanhas: [] });
+
+const alocacoesFiltradas = computed(() => {
+  if (!transparencia.value) return [];
+  return transparencia.value.filter((a) => {
+    if (campanhaId.value) return a.campanha.id === parseInt(campanhaId.value);
+    return true;
+  });
+});
+
+const totalAlocado = computed(() =>
+  alocacoesFiltradas.value.reduce((t, a) => t + (a.valorAlocado || 0), 0)
+);
+
+const getCampanhaNome = (id) => {
+  const c = campanhas.value.campanhas.find((c) => c.id === id);
+  return c ? c.titulo : "Campanha não encontrada";
 };
+
+const verComprovante = (alocacao) => {
+  alocacaoSelecionada.value = alocacao;
+  const myModal = new bootstrap.Modal(
+    document.getElementById("comprovanteModal")
+  );
+  myModal.show();
+};
+
+onMounted(() => {
+  Promise.all([
+    store.dispatch("fetchCampanhas"),
+    store.dispatch("fetchTransparencia"),
+  ]).finally(() => {
+    loading.value = false;
+  });
+});
 </script>
 
 <style scoped>

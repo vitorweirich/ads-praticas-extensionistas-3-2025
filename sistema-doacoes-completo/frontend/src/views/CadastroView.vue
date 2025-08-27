@@ -138,83 +138,69 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "CadastroView",
-  data() {
-    return {
-      user: {
-        nome: "",
-        email: "",
-        senha: "",
-        telefone: "",
-        cpfCnpj: "",
-        endereco: "",
-      },
-      confirmarSenha: "",
-      loading: false,
-      error: null,
-      success: null,
-    };
-  },
-  computed: {
-    isFormValid() {
-      return (
-        this.user.nome &&
-        this.user.email &&
-        this.user.senha &&
-        this.user.senha.length >= 6 &&
-        this.user.senha === this.confirmarSenha
-      );
-    },
-  },
-  methods: {
-    handleRegister() {
-      if (!this.isFormValid) {
-        this.error =
-          "Por favor, preencha todos os campos obrigatórios corretamente.";
-        return;
-      }
+<script setup>
+import { reactive, ref, computed } from "vue";
+import { useStore } from "vuex";
+import { useRouter } from "vue-router";
 
-      if (this.user.senha !== this.confirmarSenha) {
-        this.error = "As senhas não coincidem.";
-        return;
-      }
+const store = useStore();
+const router = useRouter();
 
-      this.loading = true;
-      this.error = null;
-      this.success = null;
+const user = reactive({
+  nome: "",
+  email: "",
+  senha: "",
+  telefone: "",
+  cpfCnpj: "",
+  endereco: "",
+});
+const confirmarSenha = ref("");
+const loading = ref(false);
+const error = ref(null);
+const success = ref(null);
 
-      this.$store
-        .dispatch("register", this.user)
-        .then(() => {
-          this.success =
-            "Cadastro realizado com sucesso! Você já pode fazer login.";
-          this.user = {
-            nome: "",
-            email: "",
-            senha: "",
-            telefone: "",
-            cpfCnpj: "",
-            endereco: "",
-          };
-          this.confirmarSenha = "";
+const isFormValid = computed(() => {
+  return (
+    user.nome &&
+    user.email &&
+    user.senha &&
+    user.senha.length >= 6 &&
+    user.senha === confirmarSenha.value
+  );
+});
 
-          setTimeout(() => {
-            this.$router.push("/login");
-          }, 2000);
-        })
-        .catch((err) => {
-          console.log(err);
-          this.error =
-            err.response?.data?.message ||
-            "Erro ao realizar cadastro. Tente novamente.";
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-  },
+const handleRegister = async () => {
+  if (!isFormValid.value) {
+    error.value =
+      "Por favor, preencha todos os campos obrigatorios corretamente.";
+    return;
+  }
+
+  loading.value = true;
+  error.value = null;
+  success.value = null;
+
+  try {
+    await store.dispatch("register", user);
+    success.value = "Cadastro realizado com sucesso! Voce ja pode fazer login.";
+    Object.assign(user, {
+      nome: "",
+      email: "",
+      senha: "",
+      telefone: "",
+      cpfCnpj: "",
+      endereco: "",
+    });
+    confirmarSenha.value = "";
+    setTimeout(() => router.push("/login"), 2000);
+  } catch (err) {
+    console.error(err);
+    error.value =
+      err.response?.data?.message ||
+      "Erro ao realizar cadastro. Tente novamente.";
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 

@@ -62,44 +62,35 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "LoginView",
-  data() {
-    return {
-      user: {
-        email: "",
-        senha: "",
-      },
-      loading: false,
-      error: null,
-    };
-  },
-  methods: {
-    handleLogin() {
-      this.loading = true;
-      this.error = null;
+<script setup>
+import { reactive, ref, onMounted } from "vue";
+import { useStore } from "vuex";
+import { useRouter } from "vue-router";
 
-      this.$store
-        .dispatch("login", this.user)
-        .then(() => {
-          this.$router.push("/portal");
-        })
-        .catch((err) => {
-          console.log(err);
-          this.error = "Falha no login. Verifique suas credenciais.";
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-  },
-  created() {
-    if (this.$store.getters.isLoggedIn) {
-      this.$router.push("/portal");
-    }
-  },
+const store = useStore();
+const router = useRouter();
+
+const user = reactive({ email: "", senha: "" });
+const loading = ref(false);
+const error = ref(null);
+
+const handleLogin = async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    await store.dispatch("login", user);
+    router.push("/portal");
+  } catch (err) {
+    console.error(err);
+    error.value = "Falha no login. Verifique suas credenciais.";
+  } finally {
+    loading.value = false;
+  }
 };
+
+onMounted(() => {
+  if (store.getters.isLoggedIn) router.push("/portal");
+});
 </script>
 
 <style scoped>
