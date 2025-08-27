@@ -6,15 +6,14 @@
           >Sistema de Doações</router-link
         >
         <button
+          id="navbarToggler"
           class="navbar-toggler"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
           aria-controls="navbarNav"
           aria-expanded="false"
           aria-label="Toggle navigation"
+          @click="toggleNavbar"
         >
-          <!-- TODO: No responsivo, esse botão apenas 'abre/colapsa' as opções e depois não fecha mais -->
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -99,15 +98,60 @@
 </template>
 
 <script setup lang="js">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
+import Collapse from 'bootstrap/js/dist/collapse'
 
 const store = useStore()
 const router = useRouter()
 
+let bsCollapseInstance = null
+let removeAfterHook = null
+let shownListener = null
+let hiddenListener = null
+
 onMounted(() => {
   store.dispatch('checkToken')
+
+  const collapseEl = document.getElementById('navbarNav')
+  if (collapseEl) {
+    bsCollapseInstance = new Collapse(collapseEl, { toggle: false })
+
+    removeAfterHook = router.afterEach(() => {
+      if (collapseEl.classList.contains('show') && bsCollapseInstance) {
+        bsCollapseInstance.hide()
+      }
+    })
+
+    collapseEl.addEventListener('click', (e) => {
+      const target = e.target.closest('.nav-link')
+      if (target && collapseEl.classList.contains('show') && bsCollapseInstance) {
+        bsCollapseInstance.hide()
+      }
+    })
+
+    const toggler = document.getElementById('navbarToggler')
+    if (toggler) {
+      shownListener = () => toggler.setAttribute('aria-expanded', 'true')
+      hiddenListener = () => toggler.setAttribute('aria-expanded', 'false')
+      collapseEl.addEventListener('shown.bs.collapse', shownListener)
+      collapseEl.addEventListener('hidden.bs.collapse', hiddenListener)
+    }
+  }
+})
+
+onUnmounted(() => {
+  if (removeAfterHook) removeAfterHook()
+  if (bsCollapseInstance) {
+    try { bsCollapseInstance.dispose() } catch (e) { /* ignore */ }
+    bsCollapseInstance = null
+  }
+  const collapseEl = document.getElementById('navbarNav')
+  if (collapseEl) {
+    if (shownListener) collapseEl.removeEventListener('shown.bs.collapse', shownListener)
+    if (hiddenListener) collapseEl.removeEventListener('hidden.bs.collapse', hiddenListener)
+  }
 })
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn)
@@ -118,6 +162,17 @@ function logout() {
   store.dispatch('logout').then(() => {
     router.push('/login')
   })
+}
+
+function toggleNavbar() {
+  const collapseEl = document.getElementById('navbarNav')
+  if (!collapseEl) return
+  // Toggle using the Collapse instance
+  if (collapseEl.classList.contains('show')) {
+    bsCollapseInstance && bsCollapseInstance.hide()
+  } else {
+    bsCollapseInstance && bsCollapseInstance.show()
+  }
 }
 </script>
 
