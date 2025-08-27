@@ -1,9 +1,6 @@
-import Vue from "vue";
-import Vuex from "vuex";
+import { createStore } from "vuex";
 import axios from "axios";
 import router from "../router";
-
-Vue.use(Vuex);
 
 function isTokenExpired(token) {
   try {
@@ -61,7 +58,7 @@ axios.interceptors.response.use(
   }
 );
 
-const store = new Vuex.Store({
+const store = createStore({
   state: {
     status: "",
     token: localStorage.getItem("token") || "",

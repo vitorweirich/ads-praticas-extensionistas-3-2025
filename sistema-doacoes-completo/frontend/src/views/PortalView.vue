@@ -38,20 +38,23 @@
     </div>
 
     <div class="row">
-      <div
-        v-if="campanhasFiltradas.length > 0"
-        class="col-md-4 mb-4"
-        v-for="(campanha, index) in campanhasFiltradas"
-        :key="index"
-      >
-        <CardCampanha :campanha="campanha" />
-      </div>
+      <template v-if="campanhasFiltradas.length > 0">
+        <div
+          class="col-md-4 mb-4"
+          v-for="(campanha, index) in campanhasFiltradas"
+          :key="index"
+        >
+          <CardCampanha :campanha="campanha" />
+        </div>
+      </template>
+
       <div v-else-if="loading" class="col-12 text-center py-5">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Carregando...</span>
         </div>
         <p class="mt-2">Carregando campanhas...</p>
       </div>
+
       <div v-else class="col-12 text-center py-5">
         <p>Nenhuma campanha encontrada com os filtros selecionados.</p>
       </div>
@@ -59,53 +62,45 @@
   </div>
 </template>
 
-<script>
-import { mapState } from "vuex";
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import { useStore } from "vuex";
+import CardCampanha from "../components/CardCampanha.vue";
 
-export default {
-  name: "PortalView",
-  data() {
-    return {
-      busca: "",
-      filtroCategoria: "",
-      loading: true,
-    };
-  },
-  components: {
-    CardCampanha: () => import("../components/CardCampanha.vue"),
-  },
-  computed: {
-    ...mapState(["campanhas"]),
-    campanhasFiltradas() {
-      return this.campanhas.campanhas
-        .filter((campanha) => campanha.status === "ATIVA")
-        .filter((campanha) => {
-          if (this.busca) {
-            const termoBusca = this.busca.toLowerCase();
-            return (
-              campanha.titulo.toLowerCase().includes(termoBusca) ||
-              campanha.descricao.toLowerCase().includes(termoBusca)
-            );
-          }
-          return true;
-        })
-        .filter((campanha) => {
-          if (this.filtroCategoria) {
-            return (
-              campanha.categoria.toLowerCase() ===
-              this.filtroCategoria.toLowerCase()
-            );
-          }
-          return true;
-        });
-    },
-  },
-  created() {
-    this.$store.dispatch("fetchCampanhas").finally(() => {
-      this.loading = false;
+const store = useStore();
+const busca = ref("");
+const filtroCategoria = ref("");
+const loading = ref(true);
+
+onMounted(() => {
+  store.dispatch("fetchCampanhas").finally(() => (loading.value = false));
+});
+
+const campanhas = computed(() => store.state.campanhas);
+
+const campanhasFiltradas = computed(() => {
+  const list = campanhas.value?.campanhas || [];
+  return list
+    .filter((c) => c.status === "ATIVA")
+    .filter((c) => {
+      if (busca.value) {
+        const termo = busca.value.toLowerCase();
+        return (
+          c.titulo.toLowerCase().includes(termo) ||
+          c.descricao.toLowerCase().includes(termo)
+        );
+      }
+      return true;
+    })
+    .filter((c) => {
+      if (filtroCategoria.value) {
+        return (
+          c.categoria.toLowerCase() === filtroCategoria.value.toLowerCase()
+        );
+      }
+      return true;
     });
-  },
-};
+});
 </script>
 
 <style scoped>

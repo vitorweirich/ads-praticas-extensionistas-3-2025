@@ -14,6 +14,7 @@ package "Aplicação (Sistema de Doações)" {
   package "Frontend (Vue.js)" as frontend {
     [Views] as Views <<layer>>
     [Components] as Components <<layer>>
+    ' TODO: Hoje o codigo usa Vuex(atualizr aqui ou no codigo)
     [Stores_Pinia] as Stores <<layer>>
     [API_Services] as APIS <<layer>>
     [Assets] as Assets <<layer>>

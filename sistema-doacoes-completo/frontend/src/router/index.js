@@ -1,5 +1,4 @@
-import Vue from "vue";
-import VueRouter from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import LoginView from "../views/LoginView.vue";
 import CadastroView from "../views/CadastroView.vue";
@@ -10,8 +9,6 @@ import AdminView from "../views/AdminView.vue";
 import NotFoundView from "../views/NotFoundView.vue";
 import CampanhaDetalheView from "../views/CampanhaDetalheView.vue";
 import AdministracaoCampanhaView from "../views/AdministracaoCampanhaView.vue";
-
-Vue.use(VueRouter);
 
 const routes = [
   {
@@ -68,14 +65,13 @@ const routes = [
     component: NotFoundView,
   },
   {
-    path: "*",
+    path: "/:pathMatch(.*)*",
     redirect: "/404",
   },
 ];
 
-const router = new VueRouter({
-  mode: "history",
-  base: process.env.BASE_URL,
+const router = createRouter({
+  history: createWebHistory(process.env.BASE_URL),
   routes,
 });
 
@@ -84,14 +80,14 @@ router.beforeEach((to, from, next) => {
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!loggedIn) {
-      next("/login");
+      next({ path: "/login" });
       return;
     }
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
       const user = JSON.parse(loggedIn);
       if (!user.roles.includes("ROLE_ADMINISTRADOR")) {
-        next("/portal");
+        next({ path: "/portal" });
         return;
       }
     }

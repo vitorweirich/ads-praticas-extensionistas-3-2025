@@ -59,20 +59,23 @@
     </div>
 
     <div
-      v-if="campanhas.campanhas.length > 0 || campanhas.isLoading"
       class="row"
+      v-if="campanhas.campanhas.length > 0 || campanhas.isLoading"
     >
       <div class="col-12">
         <h2 class="text-center mb-4">Campanhas em Destaque</h2>
       </div>
-      <div
-        v-if="!campanhas.isLoading"
-        class="col-md-4 mb-4"
-        v-for="(campanha, index) in campanhasDestaque"
-        :key="index"
-      >
-        <CardCampanha :campanha="campanha" />
-      </div>
+
+      <template v-if="!campanhas.isLoading">
+        <div
+          class="col-md-4 mb-4"
+          v-for="(campanha, index) in campanhasDestaque"
+          :key="index"
+        >
+          <CardCampanha :campanha="campanha" />
+        </div>
+      </template>
+
       <div v-else class="col-12 text-center">
         <p>Carregando campanhas...</p>
       </div>
@@ -80,25 +83,21 @@
   </div>
 </template>
 
-<script>
-import { mapState } from "vuex";
+<script setup>
+import { computed, onMounted } from "vue";
+import { useStore } from "vuex";
 import CardCampanha from "../components/CardCampanha.vue";
 
-export default {
-  name: "HomeView",
-  computed: {
-    ...mapState(["campanhas"]),
-    campanhasDestaque() {
-      return this.campanhas.campanhas
-        .filter((campanha) => campanha.status === "ATIVA")
-        .slice(0, 3);
-    },
-  },
-  components: {
-    CardCampanha,
-  },
-  created() {
-    this.$store.dispatch("fetchCampanhas");
-  },
-};
+const store = useStore();
+
+onMounted(() => {
+  store.dispatch("fetchCampanhas");
+});
+
+const campanhas = computed(() => store.state.campanhas);
+
+const campanhasDestaque = computed(() => {
+  const list = campanhas.value?.campanhas || [];
+  return list.filter((c) => c.status === "ATIVA").slice(0, 3);
+});
 </script>

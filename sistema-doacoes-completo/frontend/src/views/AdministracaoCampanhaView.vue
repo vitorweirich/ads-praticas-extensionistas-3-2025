@@ -620,370 +620,208 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, computed, onMounted } from "vue";
 import axios from "axios";
 
-export default {
-  name: "AdminCampanhasView",
-  data() {
-    return {
-      loading: true,
-      loadingDoacoes: false,
-      campanhas: [],
-      campanhasFiltradas: [],
-      doacoesCampanha: [],
-      campanhaAtual: null,
-      showModalCampanha: false,
-      processandoDoacao: null,
+const loading = ref(true);
+const loadingDoacoes = ref(false);
+const campanhas = ref([]);
+const campanhasFiltradas = ref([]);
+const doacoesCampanha = ref([]);
+const campanhaAtual = ref(null);
+const showModalCampanha = ref(false);
+const processandoDoacao = ref(null);
 
-      filtro: {
-        termo: "",
-        status: "",
-        categoria: "",
-      },
+const filtro = reactive({ termo: "", status: "", categoria: "" });
+const filtroDoacoes = ref("");
 
-      filtroDoacoes: "",
-    };
-  },
-  computed: {
-    doacoesPendentes() {
-      return this.doacoesCampanha.filter(
-        (doacao) => doacao.status === "PENDENTE"
-      );
-    },
-    doacoesConfirmadas() {
-      return this.doacoesCampanha.filter(
-        (doacao) => doacao.status === "CONFIRMADA"
-      );
-    },
-    doacoesCanceladas() {
-      return this.doacoesCampanha.filter(
-        (doacao) => doacao.status === "CANCELADA"
-      );
-    },
-    doacoesFiltradas() {
-      if (!this.filtroDoacoes) {
-        return this.doacoesCampanha;
-      }
+const doacoesFiltradas = computed(() => {
+  if (!filtroDoacoes.value) return doacoesCampanha.value;
+  const termo = filtroDoacoes.value.toLowerCase();
+  return doacoesCampanha.value.filter((d) => {
+    const nome = d.doador ? d.doador.nome.toLowerCase() : "";
+    const valor = d.valor.toString();
+    const status = (d.status || "").toLowerCase();
+    const forma = (d.formaPagamento || "").toLowerCase();
+    return (
+      nome.includes(termo) ||
+      valor.includes(termo) ||
+      status.includes(termo) ||
+      forma.includes(termo)
+    );
+  });
+});
 
-      const termo = this.filtroDoacoes.toLowerCase();
-      return this.doacoesCampanha.filter((doacao) => {
-        const doadorNome = doacao.doador
-          ? doacao.doador.nome.toLowerCase()
-          : "";
-        const valor = doacao.valor.toString();
-        const status = doacao.status.toLowerCase();
-        const formaPagamento = doacao.formaPagamento.toLowerCase();
-
-        return (
-          doadorNome.includes(termo) ||
-          valor.includes(termo) ||
-          status.includes(termo) ||
-          formaPagamento.includes(termo)
-        );
-      });
-    },
-  },
-  created() {
-    this.carregarCampanhas();
-  },
-  methods: {
-    async carregarCampanhas() {
-      this.loading = true;
-
-      try {
-        const response = await axios.get(
-          `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`
-        );
-        this.campanhas = response.data;
-        this.campanhasFiltradas = [...this.campanhas];
-      } catch (error) {
-        console.error("Erro ao carregar campanhas:", error);
-        alert("Erro ao carregar campanhas. Por favor, tente novamente.");
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    filtrarCampanhas() {
-      this.campanhasFiltradas = this.campanhas.filter((campanha) => {
-        const termoBusca = this.filtro.termo.toLowerCase();
-        const matchTermo =
-          !termoBusca ||
-          campanha.titulo.toLowerCase().includes(termoBusca) ||
-          campanha.descricao.toLowerCase().includes(termoBusca);
-
-        const matchStatus =
-          !this.filtro.status || campanha.status === this.filtro.status;
-
-        const matchCategoria =
-          !this.filtro.categoria ||
-          campanha.categoria === this.filtro.categoria;
-
-        return matchTermo && matchStatus && matchCategoria;
-      });
-    },
-
-    async verCampanha(campanha) {
-      this.campanhaAtual = campanha;
-      this.showModalCampanha = true;
-
-      await this.carregarDoacoesCampanha(campanha.id);
-    },
-
-    async carregarDoacoesCampanha(campanhaId) {
-      this.loadingDoacoes = true;
-
-      try {
-        const response = await axios.get(
-          `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/campanha/${campanhaId}`
-        );
-        this.doacoesCampanha = response.data;
-      } catch (error) {
-        console.error("Erro ao carregar doações:", error);
-        this.doacoesCampanha = [];
-      } finally {
-        this.loadingDoacoes = false;
-      }
-    },
-
-    fecharModalCampanha() {
-      this.showModalCampanha = false;
-      this.campanhaAtual = null;
-      this.doacoesCampanha = [];
-    },
-
-    editarCampanha() {
-      alert(`Editar campanha: ${this.campanhaAtual.titulo}`);
-    },
-
-    async alterarStatusCampanha() {
-      const novoStatus =
-        this.campanhaAtual.status === "ATIVA" ? "FINALIZADA" : "ATIVA";
-      const mensagem =
-        this.campanhaAtual.status === "ATIVA"
-          ? `Tem certeza que deseja pausar a campanha "${this.campanhaAtual.titulo}"?`
-          : `Tem certeza que deseja ativar a campanha "${this.campanhaAtual.titulo}"?`;
-
-      if (confirm(mensagem)) {
-        try {
-          const campanhaAtualizada = {
-            ...this.campanhaAtual,
-            status: novoStatus,
-          };
-
-          await axios.put(
-            `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${this.campanhaAtual.id}`,
-            campanhaAtualizada
-          );
-
-          const index = this.campanhas.findIndex(
-            (c) => c.id === this.campanhaAtual.id
-          );
-          if (index !== -1) {
-            this.campanhas[index].status = novoStatus;
-            this.campanhaAtual.status = novoStatus;
-          }
-
-          const indexFiltrado = this.campanhasFiltradas.findIndex(
-            (c) => c.id === this.campanhaAtual.id
-          );
-          if (indexFiltrado !== -1) {
-            this.campanhasFiltradas[indexFiltrado].status = novoStatus;
-          }
-
-          alert(
-            `Campanha ${
-              novoStatus === "ATIVA" ? "ativada" : "pausada"
-            } com sucesso!`
-          );
-        } catch (error) {
-          console.error("Erro ao alterar status da campanha:", error);
-          alert(
-            "Erro ao alterar status da campanha. Por favor, tente novamente."
-          );
-        }
-      }
-    },
-
-    async confirmarDoacao(doacao) {
-      if (
-        confirm(`Confirmar doação de R$ ${this.formatarValor(doacao.valor)}?`)
-      ) {
-        this.processandoDoacao = doacao.id;
-
-        try {
-          await axios.put(
-            `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/confirmar`
-          );
-
-          const index = this.doacoesCampanha.findIndex(
-            (d) => d.id === doacao.id
-          );
-          if (index !== -1) {
-            this.doacoesCampanha[index].status = "CONFIRMADA";
-          }
-
-          if (this.campanhaAtual) {
-            this.campanhaAtual.valorArrecadado += doacao.valor;
-
-            const indexCampanha = this.campanhas.findIndex(
-              (c) => c.id === this.campanhaAtual.id
-            );
-            if (indexCampanha !== -1) {
-              this.campanhas[indexCampanha].valorArrecadado =
-                this.campanhaAtual.valorArrecadado;
-            }
-
-            const indexFiltrado = this.campanhasFiltradas.findIndex(
-              (c) => c.id === this.campanhaAtual.id
-            );
-            if (indexFiltrado !== -1) {
-              this.campanhasFiltradas[indexFiltrado].valorArrecadado =
-                this.campanhaAtual.valorArrecadado;
-            }
-          }
-
-          alert("Doação confirmada com sucesso!");
-        } catch (error) {
-          console.error("Erro ao confirmar doação:", error);
-          alert("Erro ao confirmar doação. Por favor, tente novamente.");
-        } finally {
-          this.processandoDoacao = null;
-        }
-      }
-    },
-
-    async recusarDoacao(doacao) {
-      if (
-        confirm(`Recusar doação de R$ ${this.formatarValor(doacao.valor)}?`)
-      ) {
-        this.processandoDoacao = doacao.id;
-
-        try {
-          await axios.put(
-            `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/cancelar`
-          );
-
-          const index = this.doacoesCampanha.findIndex(
-            (d) => d.id === doacao.id
-          );
-          if (index !== -1) {
-            this.doacoesCampanha[index].status = "CANCELADA";
-          }
-
-          if (doacao.status === "CONFIRMADA" && this.campanhaAtual) {
-            this.campanhaAtual.valorArrecadado -= doacao.valor;
-
-            const indexCampanha = this.campanhas.findIndex(
-              (c) => c.id === this.campanhaAtual.id
-            );
-            if (indexCampanha !== -1) {
-              this.campanhas[indexCampanha].valorArrecadado =
-                this.campanhaAtual.valorArrecadado;
-            }
-
-            const indexFiltrado = this.campanhasFiltradas.findIndex(
-              (c) => c.id === this.campanhaAtual.id
-            );
-            if (indexFiltrado !== -1) {
-              this.campanhasFiltradas[indexFiltrado].valorArrecadado =
-                this.campanhaAtual.valorArrecadado;
-            }
-          }
-
-          alert("Doação recusada com sucesso!");
-        } catch (error) {
-          console.error("Erro ao recusar doação:", error);
-          alert("Erro ao recusar doação. Por favor, tente novamente.");
-        } finally {
-          this.processandoDoacao = null;
-        }
-      }
-    },
-
-    verDetalhesDoacao(doacao) {
-      alert(
-        `Detalhes da Doação:\n\nDoador: ${
-          doacao.anonimo
-            ? "Anônimo"
-            : doacao.doador
-            ? doacao.doador.nome
-            : "N/A"
-        }\nValor: R$ ${this.formatarValor(
-          doacao.valor
-        )}\nData: ${this.formatarData(doacao.dataHora)}\nForma de Pagamento: ${
-          doacao.formaPagamento
-        }\nStatus: ${doacao.status}\nMensagem: ${
-          doacao.mensagem || "Nenhuma mensagem"
-        }`
-      );
-    },
-
-    verAlocacoes() {
-      alert(
-        `Funcionalidade de visualização de alocações será implementada em breve.`
-      );
-    },
-
-    calcularProgresso(campanha) {
-      if (!campanha.metaFinanceira || campanha.metaFinanceira === 0) {
-        return 0;
-      }
-
-      const percentual =
-        (campanha.valorArrecadado / campanha.metaFinanceira) * 100;
-      return Math.min(Math.round(percentual), 100);
-    },
-
-    calcularValorMedio() {
-      if (this.doacoesConfirmadas.length === 0) {
-        return "0,00";
-      }
-
-      const total = this.doacoesConfirmadas.reduce(
-        (sum, doacao) => sum + doacao.valor,
-        0
-      );
-      const media = total / this.doacoesConfirmadas.length;
-
-      return this.formatarValor(media);
-    },
-
-    formatarValor(valor) {
-      if (valor === undefined || valor === null) {
-        return "0,00";
-      }
-      return valor.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    },
-
-    formatarData(data) {
-      if (!data) return "Data não disponível";
-
-      const options = { day: "2-digit", month: "2-digit", year: "numeric" };
-      return new Date(data).toLocaleDateString("pt-BR", options);
-    },
-
-    truncateText(text, length) {
-      if (!text) return "";
-      return text.length > length ? text.substring(0, length) + "..." : text;
-    },
-
-    getStatusClass(status) {
-      const classes = {
-        ATIVA: "badge bg-success",
-        FINALIZADA: "badge bg-secondary",
-        CANCELADA: "badge bg-danger",
-        CONFIRMADA: "badge bg-success",
-        PENDENTE: "badge bg-warning text-dark",
-      };
-      return classes[status] || "badge bg-secondary";
-    },
-  },
+const carregarCampanhas = async () => {
+  loading.value = true;
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`
+    );
+    campanhas.value = resp.data || [];
+    campanhasFiltradas.value = [...campanhas.value];
+  } catch (e) {
+    console.error("Erro ao carregar campanhas:", e);
+    alert("Erro ao carregar campanhas. Tente novamente.");
+  } finally {
+    loading.value = false;
+  }
 };
+
+const filtrarCampanhas = () => {
+  const termo = (filtro.termo || "").toLowerCase();
+  campanhasFiltradas.value = campanhas.value.filter((c) => {
+    const matchTermo =
+      !termo ||
+      c.titulo.toLowerCase().includes(termo) ||
+      (c.descricao || "").toLowerCase().includes(termo);
+    const matchStatus = !filtro.status || c.status === filtro.status;
+    const matchCategoria =
+      !filtro.categoria || c.categoria === filtro.categoria;
+    return matchTermo && matchStatus && matchCategoria;
+  });
+};
+
+const verCampanha = async (campanha) => {
+  campanhaAtual.value = campanha;
+  showModalCampanha.value = true;
+  await carregarDoacoesCampanha(campanha.id);
+};
+
+const carregarDoacoesCampanha = async (campanhaId) => {
+  loadingDoacoes.value = true;
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/campanha/${campanhaId}`
+    );
+    doacoesCampanha.value = resp.data || [];
+  } catch (e) {
+    console.error("Erro ao carregar doações:", e);
+    doacoesCampanha.value = [];
+  } finally {
+    loadingDoacoes.value = false;
+  }
+};
+
+const fecharModalCampanha = () => {
+  showModalCampanha.value = false;
+  campanhaAtual.value = null;
+  doacoesCampanha.value = [];
+};
+
+const editarCampanha = (campanha) => {
+  alert(`Editar campanha: ${campanha.titulo}`);
+};
+
+const confirmarDoacao = async (doacao) => {
+  if (!confirm(`Confirmar doação de R$ ${formatarValor(doacao.valor)}?`))
+    return;
+  processandoDoacao.value = doacao.id;
+  try {
+    await axios.put(
+      `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/confirmar`
+    );
+    const i = doacoesCampanha.value.findIndex((d) => d.id === doacao.id);
+    if (i !== -1) doacoesCampanha.value[i].status = "CONFIRMADA";
+    if (campanhaAtual.value) {
+      campanhaAtual.value.valorArrecadado += doacao.valor;
+      const idx = campanhas.value.findIndex(
+        (c) => c.id === campanhaAtual.value.id
+      );
+      if (idx !== -1)
+        campanhas.value[idx].valorArrecadado =
+          campanhaAtual.value.valorArrecadado;
+      const idxF = campanhasFiltradas.value.findIndex(
+        (c) => c.id === campanhaAtual.value.id
+      );
+      if (idxF !== -1)
+        campanhasFiltradas.value[idxF].valorArrecadado =
+          campanhaAtual.value.valorArrecadado;
+    }
+    alert("Doação confirmada com sucesso!");
+  } catch (e) {
+    console.error("Erro ao confirmar doação:", e);
+    alert("Erro ao confirmar doação. Tente novamente.");
+  } finally {
+    processandoDoacao.value = null;
+  }
+};
+
+const recusarDoacao = async (doacao) => {
+  if (!confirm(`Recusar doação de R$ ${formatarValor(doacao.valor)}?`)) return;
+  processandoDoacao.value = doacao.id;
+  try {
+    await axios.put(
+      `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/cancelar`
+    );
+    const i = doacoesCampanha.value.findIndex((d) => d.id === doacao.id);
+    if (i !== -1) doacoesCampanha.value[i].status = "CANCELADA";
+    if (doacao.status === "CONFIRMADA" && campanhaAtual.value) {
+      campanhaAtual.value.valorArrecadado -= doacao.valor;
+      const idx = campanhas.value.findIndex(
+        (c) => c.id === campanhaAtual.value.id
+      );
+      if (idx !== -1)
+        campanhas.value[idx].valorArrecadado =
+          campanhaAtual.value.valorArrecadado;
+      const idxF = campanhasFiltradas.value.findIndex(
+        (c) => c.id === campanhaAtual.value.id
+      );
+      if (idxF !== -1)
+        campanhasFiltradas.value[idxF].valorArrecadado =
+          campanhaAtual.value.valorArrecadado;
+    }
+    alert("Doação recusada com sucesso!");
+  } catch (e) {
+    console.error("Erro ao recusar doação:", e);
+    alert("Erro ao recusar doação. Tente novamente.");
+  } finally {
+    processandoDoacao.value = null;
+  }
+};
+
+const verDetalhesDoacao = (doacao) => {
+  alert(
+    `Detalhes da Doação:\n\nDoador: ${
+      doacao.anonimo ? "Anônimo" : doacao.doador ? doacao.doador.nome : "N/A"
+    }\nValor: R$ ${formatarValor(doacao.valor)}\nData: ${formatarData(
+      doacao.dataHora
+    )}\nForma de Pagamento: ${doacao.formaPagamento}\nStatus: ${
+      doacao.status
+    }\nMensagem: ${doacao.mensagem || "Nenhuma mensagem"}`
+  );
+};
+
+const formatarValor = (valor) => {
+  if (valor === undefined || valor === null) return "0,00";
+  return valor.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const formatarData = (data) => {
+  if (!data) return "Data não disponível";
+  const options = { day: "2-digit", month: "2-digit", year: "numeric" };
+  return new Date(data).toLocaleDateString("pt-BR", options);
+};
+
+const truncateText = (text, length) => {
+  if (!text) return "";
+  return text.length > length ? text.substring(0, length) + "..." : text;
+};
+
+const getStatusClass = (status) =>
+  ({
+    ATIVA: "badge bg-success",
+    FINALIZADA: "badge bg-secondary",
+    CANCELADA: "badge bg-danger",
+    CONFIRMADA: "badge bg-success",
+    PENDENTE: "badge bg-warning text-dark",
+  }[status] || "badge bg-secondary");
+
+onMounted(() => carregarCampanhas());
 </script>
 
 <style scoped>
