@@ -6,6 +6,8 @@ services:
       context: .
     expose:
       - "8080"
+    volumes:
+      - uploads:/app/uploads
     networks:
       - coolify
     environment:
@@ -23,3 +25,4 @@ networks:
     external: true
 volumes:
   pgdata:
+  uploads:
