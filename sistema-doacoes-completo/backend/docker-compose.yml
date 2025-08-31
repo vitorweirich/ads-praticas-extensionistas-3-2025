@@ -8,6 +8,8 @@ services:
       - "8080"
     ports:
       - "8080:8080"
+    volumes:
+      - uploads:/app/uploads
     environment:
       DATABASE_URL: ${DATABASE_URL:-jdbc:postgresql://db:5432/doacoesdb}
       DB_HOST: db
@@ -37,3 +39,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:

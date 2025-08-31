@@ -18,7 +18,7 @@
             <select class="form-select" v-model="campanhaId">
               <option value="">Todas as campanhas</option>
               <option
-                v-for="campanha in campanhas"
+                v-for="campanha in campanhas.campanhas"
                 :key="campanha.id"
                 :value="campanha.id"
               >
@@ -71,15 +71,23 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <!-- Visão Desktop -->
                   <tr
                     v-for="(alocacao, index) in alocacoesFiltradas"
-                    :key="index"
+                    :key="`desktop-${index}`"
+                    class="d-none d-md-table-row"
                   >
-                    <td>{{ getCampanhaNome(alocacao.campanha.id) }}</td>
-                    <td>{{ alocacao.tituloAlocacao }}</td>
-                    <td>R$ {{ formatarValor(alocacao.valorAlocado) }}</td>
-                    <td>{{ formatarData(alocacao.dataAlocacao) }}</td>
-                    <td>
+                    <td class="align-middle">
+                      {{ getCampanhaNome(alocacao.campanha.id) }}
+                    </td>
+                    <td class="align-middle">{{ alocacao.tituloAlocacao }}</td>
+                    <td class="align-middle">
+                      R$ {{ formatarValor(alocacao.valorAlocado) }}
+                    </td>
+                    <td class="align-middle">
+                      {{ formatarData(alocacao.dataAlocacao) }}
+                    </td>
+                    <td class="align-middle">
                       <button
                         class="btn btn-sm btn-outline-primary"
                         @click="verComprovante(alocacao)"
@@ -88,6 +96,46 @@
                       </button>
                     </td>
                   </tr>
+
+                  <!-- Visão Mobile -->
+                  <tr
+                    v-for="(alocacao, index) in alocacoesFiltradas"
+                    :key="`mobile-${index}`"
+                    class="d-md-none"
+                  >
+                    <td colspan="5">
+                      <div class="mobile-alocacao card border-0">
+                        <div
+                          class="d-flex justify-content-between align-items-start"
+                        >
+                          <div>
+                            <h6 class="mb-1">{{ alocacao.tituloAlocacao }}</h6>
+                            <p class="mb-1 text-muted small">
+                              <strong>Campanha:</strong>
+                              {{ getCampanhaNome(alocacao.campanha.id) }}
+                            </p>
+                            <p class="mb-0 small">
+                              <strong>Valor:</strong>
+                              R$ {{ formatarValor(alocacao.valorAlocado) }}
+                              <span class="mx-2">•</span>
+                              <small class="text-muted">{{
+                                formatarData(alocacao.dataAlocacao)
+                              }}</small>
+                            </p>
+                          </div>
+                          <div class="text-end">
+                            <button
+                              class="btn btn-sm btn-outline-primary"
+                              @click="verComprovante(alocacao)"
+                            >
+                              <i class="fas fa-file-alt"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
                   <tr v-if="alocacoesFiltradas.length === 0">
                     <td colspan="5" class="text-center py-3">
                       <p v-if="loading" class="mb-0">
@@ -177,67 +225,84 @@
   </div>
 </template>
 
-<script>
-import { mapState } from "vuex";
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import { useStore } from "vuex";
 import * as bootstrap from "bootstrap";
 import { formatarValor, formatarData } from "../utils";
 
-export default {
-  name: "TransparenciaView",
-  data() {
-    return {
-      campanhaId: "",
-      loading: true,
-      alocacaoSelecionada: null,
-    };
-  },
-  computed: {
-    ...mapState(["transparencia", "campanhas"]),
-    alocacoesFiltradas() {
-      if (!this.transparencia) return [];
+const store = useStore();
+const campanhaId = ref("");
+const loading = ref(true);
+const alocacaoSelecionada = ref(null);
 
-      return this.transparencia.filter((alocacao) => {
-        if (this.campanhaId) {
-          return alocacao.campanha.id === parseInt(this.campanhaId);
-        }
-        return true;
-      });
-    },
-    totalAlocado() {
-      return this.alocacoesFiltradas.reduce((total, alocacao) => {
-        return total + (alocacao.valorAlocado || 0);
-      }, 0);
-    },
-  },
-  methods: {
-    formatarValor,
-    formatarData,
-    getCampanhaNome(id) {
-      const campanha = this.campanhas.campanhas.find((c) => c.id === id);
-      return campanha ? campanha.titulo : "Campanha não encontrada";
-    },
-    verComprovante(alocacao) {
-      this.alocacaoSelecionada = alocacao;
-      const myModal = new bootstrap.Modal(
-        document.getElementById("comprovanteModal")
-      );
-      myModal.show();
-    },
-  },
-  created() {
-    Promise.all([
-      this.$store.dispatch("fetchCampanhas"),
-      this.$store.dispatch("fetchTransparencia"),
-    ]).finally(() => {
-      this.loading = false;
-    });
-  },
+const transparencia = computed(() => store.state.transparencia || []);
+const campanhas = computed(() => store.state.campanhas || { campanhas: [] });
+
+const alocacoesFiltradas = computed(() => {
+  if (!transparencia.value) return [];
+  return transparencia.value.filter((a) => {
+    if (campanhaId.value) return a.campanha.id === parseInt(campanhaId.value);
+    return true;
+  });
+});
+
+const totalAlocado = computed(() =>
+  alocacoesFiltradas.value.reduce((t, a) => t + (a.valorAlocado || 0), 0)
+);
+
+const getCampanhaNome = (id) => {
+  const c = campanhas.value.campanhas.find((c) => c.id === id);
+  return c ? c.titulo : "Campanha não encontrada";
 };
+
+const verComprovante = (alocacao) => {
+  alocacaoSelecionada.value = alocacao;
+  const myModal = new bootstrap.Modal(
+    document.getElementById("comprovanteModal")
+  );
+  myModal.show();
+};
+
+onMounted(() => {
+  Promise.all([
+    store.dispatch("fetchCampanhas"),
+    store.dispatch("fetchTransparencia"),
+  ]).finally(() => {
+    loading.value = false;
+  });
+});
 </script>
 
 <style scoped>
 .transparencia-view {
   padding-top: 20px;
   padding-bottom: 30px;
+}
+
+/* Mobile compact row styling */
+.mobile-alocacao {
+  background: transparent;
+  padding: 8px 0;
+}
+
+/* Make table more compact on small screens */
+@media (max-width: 767.98px) {
+  .table thead {
+    display: none;
+  }
+
+  .table td {
+    border-top: none;
+  }
+
+  .mobile-alocacao h6 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .mobile-alocacao p.small {
+    margin-bottom: 0.25rem;
+  }
 }
 </style>

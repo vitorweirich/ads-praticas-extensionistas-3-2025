@@ -473,6 +473,7 @@
                                 class="btn btn-sm btn-outline-warning"
                                 @click="alterarStatus(usuario)"
                               >
+                                <!-- TODO: Essa ação não existe no backend -->
                                 <i
                                   :class="
                                     usuario.ativo
@@ -496,6 +497,7 @@
     </div>
 
     <!-- Modal de Nova Campanha -->
+    <!-- TODO: Validar inputs no front -->
     <div
       class="modal fade"
       :class="{ 'show d-block': showModalCampanha }"
@@ -575,15 +577,59 @@
               </div>
 
               <div class="mb-3">
-                <label for="imagemCapa" class="form-label"
+                <label for="imagemCapaUrl" class="form-label"
                   >URL da Imagem de Capa</label
                 >
                 <input
                   type="url"
                   class="form-control"
-                  id="imagemCapa"
+                  id="imagemCapaUrl"
                   v-model="campanhaSelecionada.imagemCapa"
+                  placeholder="Cole a URL da imagem (opcional, será substituída se enviar arquivo)"
                 />
+                <div class="form-text mt-1">
+                  Ou envie um arquivo de imagem abaixo (arquivo terá
+                  prioridade).
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="imagemCapaFile" class="form-label"
+                  >Enviar Imagem</label
+                >
+                <input
+                  id="imagemCapaFile"
+                  class="form-control"
+                  type="file"
+                  accept="image/*"
+                  @change="onCampanhaFileChange"
+                />
+                <div v-if="campanhaImagemFileName" class="form-text mt-1">
+                  Arquivo selecionado: {{ campanhaImagemFileName }}
+                </div>
+                <!-- Image preview: shows selected file or the URL from imagemCapa -->
+                <div v-if="campanhaImagemPreview" class="mt-3">
+                  <label class="form-label d-block">Preview da Imagem</label>
+                  <div style="max-width: 320px">
+                    <img
+                      :src="campanhaImagemPreview"
+                      alt="Preview imagem da campanha"
+                      class="img-fluid rounded"
+                      style="
+                        max-height: 200px;
+                        object-fit: contain;
+                        width: 100%;
+                        border: 1px solid #e9ecef;
+                        padding: 4px;
+                        background: #fff;
+                      "
+                    />
+                  </div>
+                  <div class="form-text mt-1">
+                    A imagem acima será enviada (se você escolher um arquivo) ou
+                    usada pela URL informada.
+                  </div>
+                </div>
               </div>
 
               <div class="mb-3">
@@ -869,550 +915,600 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, onMounted, watch, onBeforeUnmount } from "vue";
 import axios from "axios";
+import { formatarData, formatarValor } from "../utils";
 
-export default {
-  name: "AdminView",
-  data() {
-    return {
-      loading: true,
-      loadingCampanhas: false,
-      loadingDoacoes: false,
-      loadingAlocacoes: false,
-      loadingUsuarios: false,
+const loading = ref(true);
+const loadingCampanhas = ref(false);
+const loadingDoacoes = ref(false);
+const loadingAlocacoes = ref(false);
+const loadingUsuarios = ref(false);
 
-      estatisticas: {
-        campanhasAtivas: 0,
-        totalArrecadado: 0,
-        totalDoacoes: 0,
-        totalUsuarios: 0,
-      },
+const estatisticas = reactive({
+  campanhasAtivas: 0,
+  totalArrecadado: 0,
+  totalDoacoes: 0,
+  totalUsuarios: 0,
+});
 
-      campanhas: [],
-      doacoes: [],
-      alocacoes: [],
-      usuarios: [],
+const campanhas = ref([]);
+const doacoes = ref([]);
+const alocacoes = ref([]);
+const usuarios = ref([]);
 
-      showModalCampanha: false,
-      showModalAlocacao: false,
-      showModalUsuario: false,
+const showModalCampanha = ref(false);
+const showModalAlocacao = ref(false);
+const showModalUsuario = ref(false);
 
-      campanhaSelecionada: {
-        titulo: "",
-        categoria: "",
-        metaFinanceira: 0,
-        dataTermino: "",
-        imagemCapa: "",
-        descricao: "",
-        beneficiarios: "",
-        status: "ATIVA",
-      },
+const campanhaSelecionada = reactive({
+  id: null,
+  titulo: "",
+  categoria: "",
+  metaFinanceira: 0,
+  dataTermino: "",
+  imagemCapa: "",
+  descricao: "",
+  beneficiarios: "",
+  status: "ATIVA",
+});
 
-      alocacaoSelecionada: {
-        campanha: null,
-        tituloAlocacao: "",
-        descricaoAlocacao: "",
-        valorAlocado: 0,
-        comprovante: "",
-      },
+const alocacaoSelecionada = reactive({
+  id: null,
+  campanha: null,
+  tituloAlocacao: "",
+  descricaoAlocacao: "",
+  valorAlocado: 0,
+  comprovante: "",
+});
 
-      usuarioSelecionado: {
-        nome: "",
-        email: "",
-        senha: "",
-        confirmarSenha: "",
-      },
+const usuarioSelecionado = reactive({
+  id: null,
+  nome: "",
+  email: "",
+  senha: "",
+  confirmarSenha: "",
+});
 
-      salvandoCampanha: false,
-      salvandoAlocacao: false,
-      salvandoUsuario: false,
-    };
-  },
-  computed: {
-    senhasIguais() {
-      return (
-        this.usuarioSelecionado.senha === this.usuarioSelecionado.confirmarSenha
-      );
-    },
-  },
-  created() {
-    this.carregarDados();
-  },
-  methods: {
-    async carregarDados() {
-      this.loading = true;
+const salvandoCampanha = ref(false);
+const salvandoAlocacao = ref(false);
+const salvandoUsuario = ref(false);
 
-      try {
-        await Promise.all([
-          this.carregarEstatisticas(),
-          this.carregarCampanhas(),
-          this.carregarDoacoes(),
-          this.carregarAlocacoes(),
-          this.carregarUsuarios(),
-        ]);
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-      } finally {
-        this.loading = false;
-      }
-    },
+const senhasIguais = () =>
+  usuarioSelecionado.senha === usuarioSelecionado.confirmarSenha;
 
-    async carregarEstatisticas() {
-      try {
-        const response = await axios.get(
-          `${process.env.VUE_APP_API_BASE_URL}/api/admin/estatisticas`
-        );
-        this.estatisticas = response.data;
-      } catch (error) {
-        console.error("Erro ao carregar estatísticas:", error);
-        this.estatisticas = {
-          campanhasAtivas: 0,
-          totalArrecadado: 0,
-          totalDoacoes: 0,
-          totalUsuarios: 0,
-        };
-      }
-    },
+const campanhaImagemFile = ref(null);
+const campanhaImagemFileName = ref("");
+const campanhaImagemPreview = ref("");
 
-    async carregarCampanhas() {
-      this.loadingCampanhas = true;
-      try {
-        const response = await axios.get(
-          `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`
-        );
-        this.campanhas = response.data;
-      } catch (error) {
-        console.error("Erro ao carregar campanhas:", error);
-        this.campanhas = [];
-      } finally {
-        this.loadingCampanhas = false;
-      }
-    },
+// Keep track of any created object URL so we can revoke it later
+let _currentObjectUrl = null;
 
-    async carregarDoacoes() {
-      this.loadingDoacoes = true;
-      try {
-        const response = await axios.get(
-          `${process.env.VUE_APP_API_BASE_URL}/api/admin/doacoes`
-        );
-        this.doacoes = response.data;
-      } catch (error) {
-        console.error("Erro ao carregar doações:", error);
-        this.doacoes = [];
-      } finally {
-        this.loadingDoacoes = false;
-      }
-    },
-
-    async carregarAlocacoes() {
-      this.loadingAlocacoes = true;
-      try {
-        const response = await axios.get(
-          `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/publica`
-        );
-        this.alocacoes = response.data;
-      } catch (error) {
-        console.error("Erro ao carregar alocações:", error);
-        this.alocacoes = [];
-      } finally {
-        this.loadingAlocacoes = false;
-      }
-    },
-
-    async carregarUsuarios() {
-      this.loadingUsuarios = true;
-      try {
-        const response = await axios.get(
-          `${process.env.VUE_APP_API_BASE_URL}/api/usuarios`
-        );
-        this.usuarios = response.data;
-      } catch (error) {
-        console.error("Erro ao carregar usuários:", error);
-        this.usuarios = [];
-      } finally {
-        this.loadingUsuarios = false;
-      }
-    },
-
-    novaCampanha() {
-      this.campanhaSelecionada = {
-        titulo: "",
-        categoria: "",
-        metaFinanceira: 0,
-        dataTermino: this.formatarDataInput(
-          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        ),
-        imagemCapa: "",
-        descricao: "",
-        beneficiarios: "",
-        status: "ATIVA",
-      };
-      this.showModalCampanha = true;
-    },
-
-    editarCampanha(campanha) {
-      this.campanhaSelecionada = {
-        ...campanha,
-      };
-      this.showModalCampanha = true;
-    },
-
-    async salvarCampanha() {
-      this.salvandoCampanha = true;
-
-      try {
-        if (this.campanhaSelecionada.id) {
-          await axios.put(
-            `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${this.campanhaSelecionada.id}`,
-            this.campanhaSelecionada
-          );
-        } else {
-          await axios.post(
-            `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`,
-            this.campanhaSelecionada
-          );
-        }
-
-        await this.carregarCampanhas();
-        this.fecharModalCampanha();
-
-        alert(
-          this.campanhaSelecionada.id
-            ? "Campanha atualizada com sucesso!"
-            : "Campanha criada com sucesso!"
-        );
-      } catch (error) {
-        console.error("Erro ao salvar campanha:", error);
-        alert("Erro ao salvar campanha. Por favor, tente novamente.");
-      } finally {
-        this.salvandoCampanha = false;
-      }
-    },
-
-    async excluirCampanha(campanha) {
-      if (
-        confirm(
-          `Tem certeza que deseja excluir a campanha "${campanha.titulo}"?`
-        )
-      ) {
-        try {
-          await axios.delete(
-            `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanha.id}`
-          );
-
-          await this.carregarCampanhas();
-
-          alert("Campanha excluída com sucesso!");
-        } catch (error) {
-          console.error("Erro ao excluir campanha:", error);
-          alert("Erro ao excluir campanha. Por favor, tente novamente.");
-        }
-      }
-    },
-
-    fecharModalCampanha() {
-      this.showModalCampanha = false;
-      this.campanhaSelecionada = {
-        titulo: "",
-        categoria: "",
-        metaFinanceira: 0,
-        dataTermino: "",
-        imagemCapa: "",
-        descricao: "",
-        beneficiarios: "",
-        status: "ATIVA",
-      };
-    },
-
-    verDoacao(doacao) {
-      alert(
-        `Detalhes da Doação:\n\nCampanha: ${doacao.campanha.titulo}\nDoador: ${
-          doacao.anonimo
-            ? "Anônimo"
-            : doacao.doador
-            ? doacao.doador.nome
-            : "N/A"
-        }\nValor: R$ ${this.formatarValor(
-          doacao.valor
-        )}\nData: ${this.formatarData(doacao.dataHora)}\nStatus: ${
-          doacao.status
-        }\nMensagem: ${doacao.mensagem || "Nenhuma mensagem"}`
-      );
-    },
-
-    async confirmarDoacao(doacao) {
-      if (
-        confirm(
-          `Confirmar doação de R$ ${this.formatarValor(
-            doacao.valor
-          )} para a campanha "${doacao.campanha.titulo}"?`
-        )
-      ) {
-        try {
-          await axios.put(
-            `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/confirmar`
-          );
-
-          await this.carregarDoacoes();
-
-          await this.carregarEstatisticas();
-
-          alert("Doação confirmada com sucesso!");
-        } catch (error) {
-          console.error("Erro ao confirmar doação:", error);
-          alert("Erro ao confirmar doação. Por favor, tente novamente.");
-        }
-      }
-    },
-
-    async cancelarDoacao(doacao) {
-      if (
-        confirm(
-          `Cancelar doação de R$ ${this.formatarValor(
-            doacao.valor
-          )} para a campanha "${doacao.campanha.titulo}"?`
-        )
-      ) {
-        try {
-          await axios.put(
-            `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/cancelar`
-          );
-
-          await this.carregarDoacoes();
-
-          await this.carregarEstatisticas();
-
-          alert("Doação cancelada com sucesso!");
-        } catch (error) {
-          console.error("Erro ao cancelar doação:", error);
-          alert("Erro ao cancelar doação. Por favor, tente novamente.");
-        }
-      }
-    },
-
-    novaAlocacao() {
-      this.alocacaoSelecionada = {
-        campanha: null,
-        tituloAlocacao: "",
-        descricaoAlocacao: "",
-        valorAlocado: 0,
-        comprovante: "",
-      };
-      this.showModalAlocacao = true;
-    },
-
-    editarAlocacao(alocacao) {
-      this.alocacaoSelecionada = { ...alocacao };
-      this.showModalAlocacao = true;
-    },
-
-    async salvarAlocacao() {
-      this.salvandoAlocacao = true;
-
-      try {
-        if (this.alocacaoSelecionada.id) {
-          await axios.put(
-            `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/${this.alocacaoSelecionada.id}`,
-            this.alocacaoSelecionada
-          );
-        } else {
-          await axios.post(
-            `${process.env.VUE_APP_API_BASE_URL}/api/transparencia`,
-            this.alocacaoSelecionada
-          );
-        }
-
-        await this.carregarAlocacoes();
-        this.fecharModalAlocacao();
-
-        alert(
-          this.alocacaoSelecionada.id
-            ? "Alocação atualizada com sucesso!"
-            : "Alocação criada com sucesso!"
-        );
-      } catch (error) {
-        console.error("Erro ao salvar alocação:", error);
-        alert("Erro ao salvar alocação. Por favor, tente novamente.");
-      } finally {
-        this.salvandoAlocacao = false;
-      }
-    },
-
-    verAlocacao(alocacao) {
-      alert(
-        `Detalhes da Alocação:\n\nCampanha: ${
-          alocacao.campanha.titulo
-        }\nTítulo: ${alocacao.tituloAlocacao}\nDescrição: ${
-          alocacao.descricaoAlocacao || "Nenhuma descrição"
-        }\nValor: R$ ${this.formatarValor(
-          alocacao.valorAlocado
-        )}\nData: ${this.formatarData(alocacao.dataAlocacao)}\nResponsável: ${
-          alocacao.responsavel.nome
-        }`
-      );
-    },
-
-    async excluirAlocacao(alocacao) {
-      if (
-        confirm(
-          `Tem certeza que deseja excluir a alocação "${alocacao.tituloAlocacao}"?`
-        )
-      ) {
-        try {
-          await axios.delete(
-            `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/${alocacao.id}`
-          );
-
-          await this.carregarAlocacoes();
-
-          alert("Alocação excluída com sucesso!");
-        } catch (error) {
-          console.error("Erro ao excluir alocação:", error);
-          alert("Erro ao excluir alocação. Por favor, tente novamente.");
-        }
-      }
-    },
-
-    fecharModalAlocacao() {
-      this.showModalAlocacao = false;
-      this.alocacaoSelecionada = {
-        campanha: null,
-        tituloAlocacao: "",
-        descricaoAlocacao: "",
-        valorAlocado: 0,
-        comprovante: "",
-      };
-    },
-
-    novoUsuario() {
-      this.usuarioSelecionado = {
-        nome: "",
-        email: "",
-        senha: "",
-        confirmarSenha: "",
-      };
-      this.showModalUsuario = true;
-    },
-
-    async salvarUsuario() {
-      if (!this.senhasIguais) {
-        alert("As senhas não coincidem.");
-        return;
-      }
-
-      this.salvandoUsuario = true;
-
-      try {
-        await axios.post(
-          `${process.env.VUE_APP_API_BASE_URL}/api/auth/cadastro-admin`,
-          {
-            nome: this.usuarioSelecionado.nome,
-            email: this.usuarioSelecionado.email,
-            senha: this.usuarioSelecionado.senha,
-          }
-        );
-
-        await this.carregarUsuarios();
-        this.fecharModalUsuario();
-
-        alert("Administrador criado com sucesso!");
-      } catch (error) {
-        console.error("Erro ao criar administrador:", error);
-        alert("Erro ao criar administrador. Por favor, tente novamente.");
-      } finally {
-        this.salvandoUsuario = false;
-      }
-    },
-
-    verUsuario(usuario) {
-      alert(
-        `Detalhes do Usuário:\n\nNome: ${usuario.nome}\nEmail: ${
-          usuario.email
-        }\nTipo: ${usuario.tipo}\nData de Cadastro: ${this.formatarData(
-          usuario.dataCadastro
-        )}\nStatus: ${usuario.ativo ? "Ativo" : "Inativo"}`
-      );
-    },
-
-    async alterarStatus(usuario) {
-      const novoStatus = usuario.ativo ? "inativar" : "ativar";
-      if (
-        confirm(
-          `Tem certeza que deseja ${novoStatus} o usuário "${usuario.nome}"?`
-        )
-      ) {
-        try {
-          await axios.put(
-            `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/${usuario.id}/status`,
-            {
-              ativo: !usuario.ativo,
-            }
-          );
-
-          await this.carregarUsuarios();
-
-          alert(
-            `Usuário ${
-              novoStatus === "ativar" ? "ativado" : "inativado"
-            } com sucesso!`
-          );
-        } catch (error) {
-          console.error(`Erro ao ${novoStatus} usuário:`, error);
-          alert(`Erro ao ${novoStatus} usuário. Por favor, tente novamente.`);
-        }
-      }
-    },
-
-    fecharModalUsuario() {
-      this.showModalUsuario = false;
-      this.usuarioSelecionado = {
-        nome: "",
-        email: "",
-        senha: "",
-        confirmarSenha: "",
-      };
-    },
-
-    formatarValor(valor) {
-      if (valor === undefined || valor === null) {
-        return "0,00";
-      }
-      return valor.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    },
-
-    formatarData(data) {
-      if (!data) return "Data não disponível";
-
-      const options = { day: "2-digit", month: "2-digit", year: "numeric" };
-      return new Date(data).toLocaleDateString("pt-BR", options);
-    },
-
-    formatarDataInput(data) {
-      if (!data) return "";
-
-      const year = data.getFullYear();
-      const month = String(data.getMonth() + 1).padStart(2, "0");
-      const day = String(data.getDate()).padStart(2, "0");
-      console.log("formatarDataInput", data, `${year}-${month}-${day}`);
-      return `${year}-${month}-${day}`;
-    },
-
-    getStatusClass(status) {
-      const classes = {
-        ATIVA: "badge bg-success",
-        FINALIZADA: "badge bg-secondary",
-        CANCELADA: "badge bg-danger",
-        CONFIRMADA: "badge bg-success",
-        PENDENTE: "badge bg-warning text-dark",
-      };
-      return classes[status] || "badge bg-secondary";
-    },
-  },
+const carregarDados = async () => {
+  loading.value = true;
+  try {
+    await Promise.all([
+      carregarEstatisticas(),
+      carregarCampanhas(),
+      carregarDoacoes(),
+      carregarAlocacoes(),
+      carregarUsuarios(),
+    ]);
+  } catch (e) {
+    console.error("Erro ao carregar dados:", e);
+  } finally {
+    loading.value = false;
+  }
 };
+
+const carregarEstatisticas = async () => {
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/admin/estatisticas`
+    );
+    Object.assign(estatisticas, resp.data);
+  } catch (e) {
+    console.error("Erro ao carregar estatisticas:", e);
+  }
+};
+
+const carregarCampanhas = async () => {
+  loadingCampanhas.value = true;
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`
+    );
+    campanhas.value = resp.data;
+  } catch (e) {
+    console.error("Erro ao carregar campanhas:", e);
+    campanhas.value = [];
+  } finally {
+    loadingCampanhas.value = false;
+  }
+};
+
+const carregarDoacoes = async () => {
+  loadingDoacoes.value = true;
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/admin/doacoes`
+    );
+    doacoes.value = resp.data;
+  } catch (e) {
+    console.error("Erro ao carregar doacoes:", e);
+    doacoes.value = [];
+  } finally {
+    loadingDoacoes.value = false;
+  }
+};
+
+const carregarAlocacoes = async () => {
+  loadingAlocacoes.value = true;
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/publica`
+    );
+    alocacoes.value = resp.data;
+  } catch (e) {
+    console.error("Erro ao carregar alocacoes:", e);
+    alocacoes.value = [];
+  } finally {
+    loadingAlocacoes.value = false;
+  }
+};
+
+const carregarUsuarios = async () => {
+  loadingUsuarios.value = true;
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/usuarios`
+    );
+    usuarios.value = resp.data;
+  } catch (e) {
+    console.error("Erro ao carregar usuarios:", e);
+    usuarios.value = [];
+  } finally {
+    loadingUsuarios.value = false;
+  }
+};
+
+onMounted(() => carregarDados());
+
+function novaCampanha() {
+  campanhaSelecionada.value = {
+    titulo: "",
+    categoria: "",
+    metaFinanceira: 0,
+    dataTermino: formatarDataInput(
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    ),
+    imagemCapa: "",
+    descricao: "",
+    beneficiarios: "",
+    status: "ATIVA",
+  };
+  showModalCampanha.value = true;
+
+  campanhaImagemPreview.value = "";
+}
+
+function onCampanhaFileChange(e) {
+  const file = e.target.files && e.target.files[0];
+  if (file) {
+    campanhaImagemFile.value = file;
+    campanhaImagemFileName.value = file.name;
+
+    if (_currentObjectUrl) {
+      try {
+        URL.revokeObjectURL(_currentObjectUrl);
+      } catch (err) {
+        //
+      }
+      _currentObjectUrl = null;
+    }
+    _currentObjectUrl = URL.createObjectURL(file);
+    campanhaImagemPreview.value = _currentObjectUrl;
+  } else {
+    campanhaImagemFile.value = null;
+    campanhaImagemFileName.value = "";
+
+    if (_currentObjectUrl) {
+      try {
+        URL.revokeObjectURL(_currentObjectUrl);
+      } catch (err) {
+        //
+      }
+      _currentObjectUrl = null;
+    }
+
+    campanhaImagemPreview.value = campanhaSelecionada.imagemCapa || "";
+  }
+}
+
+const editarCampanha = (c) => {
+  Object.assign(campanhaSelecionada, c);
+  showModalCampanha.value = true;
+  campanhaImagemFile.value = null;
+  campanhaImagemFileName.value = "";
+
+  if (_currentObjectUrl) {
+    try {
+      URL.revokeObjectURL(_currentObjectUrl);
+    } catch (err) {
+      //
+    }
+    _currentObjectUrl = null;
+  }
+  campanhaImagemPreview.value = c.imagemCapa || "";
+};
+
+const getStatusClass = (status) =>
+  ({
+    ATIVA: "badge bg-success",
+    FINALIZADA: "badge bg-secondary",
+    CANCELADA: "badge bg-danger",
+    CONFIRMADA: "badge bg-success",
+    PENDENTE: "badge bg-warning text-dark",
+  }[status] || "badge bg-secondary");
+
+async function salvarCampanha() {
+  salvandoCampanha.value = true;
+
+  try {
+    const campanhaPayload = JSON.stringify(campanhaSelecionada);
+    const form = new FormData();
+    form.append(
+      "campanha",
+      new Blob([campanhaPayload], { type: "application/json" })
+    );
+    if (campanhaImagemFile.value) {
+      form.append("imagem", campanhaImagemFile.value);
+    }
+
+    if (campanhaSelecionada.id) {
+      await axios.put(
+        `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanhaSelecionada.id}`,
+        form,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+    } else {
+      await axios.post(
+        `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`,
+        form
+      );
+    }
+
+    await carregarCampanhas();
+    fecharModalCampanha();
+
+    alert(
+      campanhaSelecionada.id
+        ? "Campanha atualizada com sucesso!"
+        : "Campanha criada com sucesso!"
+    );
+  } catch (error) {
+    console.error("Erro ao salvar campanha:", error);
+    alert("Erro ao salvar campanha. Por favor, tente novamente.");
+  } finally {
+    salvandoCampanha.value = false;
+  }
+}
+
+async function excluirCampanha(campanha) {
+  if (
+    confirm(`Tem certeza que deseja excluir a campanha "${campanha.titulo}"?`)
+  ) {
+    try {
+      await axios.delete(
+        `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanha.id}`
+      );
+
+      await carregarCampanhas();
+
+      alert("Campanha excluída com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir campanha:", error);
+      alert("Erro ao excluir campanha. Por favor, tente novamente.");
+    }
+  }
+}
+
+function fecharModalCampanha() {
+  showModalCampanha.value = false;
+  campanhaSelecionada.value = {
+    titulo: "",
+    categoria: "",
+    metaFinanceira: 0,
+    dataTermino: "",
+    imagemCapa: "",
+    descricao: "",
+    beneficiarios: "",
+    status: "ATIVA",
+  };
+  campanhaImagemFile.value = null;
+  campanhaImagemFileName.value = "";
+
+  if (_currentObjectUrl) {
+    try {
+      URL.revokeObjectURL(_currentObjectUrl);
+    } catch (err) {
+      //
+    }
+    _currentObjectUrl = null;
+  }
+  campanhaImagemPreview.value = "";
+}
+
+watch(
+  () => campanhaSelecionada.imagemCapa,
+  (newUrl) => {
+    if (!campanhaImagemFile.value) {
+      campanhaImagemPreview.value = newUrl || "";
+    }
+  }
+);
+
+onBeforeUnmount(() => {
+  if (_currentObjectUrl) {
+    try {
+      URL.revokeObjectURL(_currentObjectUrl);
+    } catch (err) {
+      //
+    }
+    _currentObjectUrl = null;
+  }
+});
+
+async function confirmarDoacao(doacao) {
+  if (
+    confirm(
+      `Confirmar doação de R$ ${formatarValor(doacao.valor)} para a campanha "${
+        doacao.campanha.titulo
+      }"?`
+    )
+  ) {
+    try {
+      await axios.put(
+        `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/confirmar`
+      );
+
+      await carregarDoacoes();
+
+      await carregarEstatisticas();
+
+      alert("Doação confirmada com sucesso!");
+    } catch (error) {
+      console.error("Erro ao confirmar doação:", error);
+      alert("Erro ao confirmar doação. Por favor, tente novamente.");
+    }
+  }
+}
+
+async function cancelarDoacao(doacao) {
+  if (
+    confirm(
+      `Cancelar doação de R$ ${formatarValor(doacao.valor)} para a campanha "${
+        doacao.campanha.titulo
+      }"?`
+    )
+  ) {
+    try {
+      await axios.put(
+        `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/cancelar`
+      );
+
+      await carregarDoacoes();
+
+      await carregarEstatisticas();
+
+      alert("Doação cancelada com sucesso!");
+    } catch (error) {
+      console.error("Erro ao cancelar doação:", error);
+      alert("Erro ao cancelar doação. Por favor, tente novamente.");
+    }
+  }
+}
+
+function verDoacao(doacao) {
+  alert(
+    `Detalhes da Doação:\n\nCampanha: ${doacao.campanha.titulo}\nDoador: ${
+      doacao.anonimo ? "Anônimo" : doacao.doador ? doacao.doador.nome : "N/A"
+    }\nValor: R$ ${formatarValor(doacao.valor)}\nData: ${formatarData(
+      doacao.dataHora
+    )}\nStatus: ${doacao.status}\nMensagem: ${
+      doacao.mensagem || "Nenhuma mensagem"
+    }`
+  );
+}
+
+function novaAlocacao() {
+  Object.assign(alocacaoSelecionada, {
+    campanha: null,
+    tituloAlocacao: "",
+    descricaoAlocacao: "",
+    valorAlocado: 0,
+    comprovante: "",
+  });
+  showModalAlocacao.value = true;
+}
+
+function editarAlocacao(alocacao) {
+  Object.assign(alocacaoSelecionada, { ...alocacao });
+  showModalAlocacao.value = true;
+}
+
+async function salvarAlocacao() {
+  salvandoAlocacao.value = true;
+
+  try {
+    if (alocacaoSelecionada.id) {
+      await axios.put(
+        `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/${alocacaoSelecionada.id}`,
+        alocacaoSelecionada
+      );
+    } else {
+      await axios.post(
+        `${process.env.VUE_APP_API_BASE_URL}/api/transparencia`,
+        alocacaoSelecionada
+      );
+    }
+
+    await carregarAlocacoes();
+    fecharModalAlocacao();
+
+    alert(
+      alocacaoSelecionada.id
+        ? "Alocação atualizada com sucesso!"
+        : "Alocação criada com sucesso!"
+    );
+  } catch (error) {
+    console.error("Erro ao salvar alocação:", error);
+    alert("Erro ao salvar alocação. Por favor, tente novamente.");
+  } finally {
+    salvandoAlocacao.value = false;
+  }
+}
+
+function verAlocacao(alocacao) {
+  alert(
+    `Detalhes da Alocação:\n\nCampanha: ${alocacao.campanha.titulo}\nTítulo: ${
+      alocacao.tituloAlocacao
+    }\nDescrição: ${
+      alocacao.descricaoAlocacao || "Nenhuma descrição"
+    }\nValor: R$ ${formatarValor(alocacao.valorAlocado)}\nData: ${formatarData(
+      alocacao.dataAlocacao
+    )}\nResponsável: ${alocacao.responsavel.nome}`
+  );
+}
+
+async function excluirAlocacao(alocacao) {
+  if (
+    confirm(
+      `Tem certeza que deseja excluir a alocação "${alocacao.tituloAlocacao}"?`
+    )
+  ) {
+    try {
+      await axios.delete(
+        `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/${alocacao.id}`
+      );
+
+      await carregarAlocacoes();
+
+      alert("Alocação excluída com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir alocação:", error);
+      alert("Erro ao excluir alocação. Por favor, tente novamente.");
+    }
+  }
+}
+function fecharModalAlocacao() {
+  showModalAlocacao.value = false;
+  alocacaoSelecionada.value = {
+    campanha: null,
+    tituloAlocacao: "",
+    descricaoAlocacao: "",
+    valorAlocado: 0,
+    comprovante: "",
+  };
+}
+
+function novoUsuario() {
+  Object.assign(usuarioSelecionado, {
+    nome: "",
+    email: "",
+    senha: "",
+    confirmarSenha: "",
+  });
+  showModalUsuario.value = true;
+}
+
+async function salvarUsuario() {
+  if (!senhasIguais) {
+    alert("As senhas não coincidem.");
+    return;
+  }
+
+  salvandoUsuario.value = true;
+
+  try {
+    await axios.post(
+      `${process.env.VUE_APP_API_BASE_URL}/api/auth/cadastro-admin`,
+      {
+        nome: usuarioSelecionado.nome,
+        email: usuarioSelecionado.email,
+        senha: usuarioSelecionado.senha,
+      }
+    );
+
+    await carregarUsuarios();
+    fecharModalUsuario();
+
+    alert("Administrador criado com sucesso!");
+  } catch (error) {
+    console.error("Erro ao criar administrador:", error);
+    alert("Erro ao criar administrador. Por favor, tente novamente.");
+  } finally {
+    salvandoUsuario.value = false;
+  }
+}
+
+function verUsuario(usuario) {
+  alert(
+    `Detalhes do Usuário:\n\nNome: ${usuario.nome}\nEmail: ${
+      usuario.email
+    }\nTipo: ${usuario.tipo}\nData de Cadastro: ${formatarData(
+      usuario.dataCadastro
+    )}\nStatus: ${usuario.ativo ? "Ativo" : "Inativo"}`
+  );
+}
+
+async function alterarStatus(usuario) {
+  const novoStatus = usuario.ativo ? "inativar" : "ativar";
+  if (
+    confirm(`Tem certeza que deseja ${novoStatus} o usuário "${usuario.nome}"?`)
+  ) {
+    try {
+      await axios.put(
+        `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/${usuario.id}/status`,
+        {
+          ativo: !usuario.ativo,
+        }
+      );
+
+      await carregarUsuarios();
+
+      alert(
+        `Usuário ${
+          novoStatus === "ativar" ? "ativado" : "inativado"
+        } com sucesso!`
+      );
+    } catch (error) {
+      console.error(`Erro ao ${novoStatus} usuário:`, error);
+      alert(`Erro ao ${novoStatus} usuário. Por favor, tente novamente.`);
+    }
+  }
+}
+
+function fecharModalUsuario() {
+  showModalUsuario.value = false;
+  Object.assign(usuarioSelecionado, {
+    nome: "",
+    email: "",
+    senha: "",
+    confirmarSenha: "",
+  });
+}
+
+function formatarDataInput(data) {
+  if (!data) return "";
+
+  const year = data.getFullYear();
+  const month = String(data.getMonth() + 1).padStart(2, "0");
+  const day = String(data.getDate()).padStart(2, "0");
+  console.log("formatarDataInput", data, `${year}-${month}-${day}`);
+  return `${year}-${month}-${day}`;
+}
 </script>
 
 <style scoped>

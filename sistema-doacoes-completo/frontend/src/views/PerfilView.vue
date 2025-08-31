@@ -310,202 +310,158 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, computed, onMounted } from "vue";
+import { useStore } from "vuex";
 import axios from "axios";
+import { formatarValor, formatarData } from "../utils";
 
-export default {
-  name: "PerfilView",
-  data() {
-    return {
-      activeTab: "perfil",
-      usuario: this.$store.getters.currentUser || {},
-      doacoes: [],
-      loadingDoacoes: false,
-      loadingPerfil: false,
-      loadingSenha: false,
-      successMessage: "",
-      errorMessage: "",
-      successMessageSenha: "",
-      errorMessageSenha: "",
-      formPerfil: {
-        nome: "",
-        email: "",
-        telefone: "",
-        cpf: "",
-        endereco: "",
-      },
-      formSenha: {
-        senhaAtual: "",
-        novaSenha: "",
-        confirmarSenha: "",
-      },
-    };
-  },
-  computed: {
-    iniciais() {
-      if (!this.usuario.nome) return "?";
-      return this.usuario.nome
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase();
-    },
-    senhasIguais() {
-      return this.formSenha.novaSenha === this.formSenha.confirmarSenha;
-    },
-    senhaValida() {
-      return this.formSenha.novaSenha.length >= 6;
-    },
-  },
-  created() {
-    this.carregarDadosUsuario();
-    this.carregarDoacoes();
-  },
-  methods: {
-    carregarDadosUsuario() {
-      axios
-        .get(`${process.env.VUE_APP_API_BASE_URL}/api/usuarios/atual`)
-        .then((response) => {
-          this.usuario = response.data;
+const store = useStore();
+const activeTab = ref("perfil");
+const usuario = ref(store.getters.currentUser || {});
+const doacoes = ref([]);
+const loadingDoacoes = ref(false);
+const loadingPerfil = ref(false);
+const loadingSenha = ref(false);
+const successMessage = ref("");
+const errorMessage = ref("");
+const successMessageSenha = ref("");
+const errorMessageSenha = ref("");
 
-          this.formPerfil.nome = this.usuario.nome || "";
-          this.formPerfil.email = this.usuario.email || "";
-          this.formPerfil.telefone = this.usuario.telefone || "";
-          this.formPerfil.cpf = this.usuario.cpfCnpj || "";
-          this.formPerfil.endereco = this.usuario.endereco || "";
-        })
-        .catch((error) => {
-          console.error("Erro ao carregar usuario:", error);
-        });
-    },
-    carregarDoacoes() {
-      this.loadingDoacoes = true;
+const formPerfil = reactive({
+  nome: "",
+  email: "",
+  telefone: "",
+  cpf: "",
+  endereco: "",
+});
+const formSenha = reactive({
+  senhaAtual: "",
+  novaSenha: "",
+  confirmarSenha: "",
+});
 
-      axios
-        .get(`${process.env.VUE_APP_API_BASE_URL}/api/doacoes/usuario/atual`)
-        .then((response) => {
-          this.doacoes = response.data;
-          this.loadingDoacoes = false;
-        })
-        .catch((error) => {
-          console.error("Erro ao carregar doações:", error);
-          this.loadingDoacoes = false;
-        });
-    },
-    atualizarPerfil() {
-      this.loadingPerfil = true;
-      this.successMessage = "";
-      this.errorMessage = "";
+const iniciais = computed(() => {
+  if (!usuario.value.nome) return "?";
+  return usuario.value.nome
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+});
 
-      const usuarioAtualizado = {
-        nome: this.formPerfil.nome,
-        email: this.formPerfil.email,
-        telefone: this.formPerfil.telefone,
-        endereco: this.formPerfil.endereco,
-      };
+const senhasIguais = computed(
+  () => formSenha.novaSenha === formSenha.confirmarSenha
+);
+const senhaValida = computed(() => formSenha.novaSenha.length >= 6);
 
-      axios
-        .put(
-          `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/${this.usuario.id}`,
-          usuarioAtualizado
-        )
-        .then(() => {
-          this.loadingPerfil = false;
-          this.successMessage = "Perfil atualizado com sucesso!";
-
-          const updatedUser = {
-            ...this.usuario,
-            nome: usuarioAtualizado.nome,
-            email: usuarioAtualizado.email,
-            telefone: usuarioAtualizado.telefone,
-            endereco: usuarioAtualizado.endereco,
-          };
-
-          localStorage.setItem("user", JSON.stringify(updatedUser));
-          this.$store.commit("auth_success", {
-            token: this.$store.state.token,
-            user: updatedUser,
-          });
-
-          this.usuario = updatedUser;
-        })
-        .catch((error) => {
-          console.error("Erro ao atualizar perfil:", error);
-          this.loadingPerfil = false;
-          this.errorMessage =
-            error.response?.data?.message ||
-            "Erro ao atualizar perfil. Tente novamente.";
-        });
-    },
-    alterarSenha() {
-      if (!this.senhasIguais) {
-        this.errorMessageSenha = "As senhas não coincidem.";
-        return;
-      }
-
-      if (!this.senhaValida) {
-        this.errorMessageSenha = "A senha deve ter pelo menos 6 caracteres.";
-        return;
-      }
-
-      this.loadingSenha = true;
-      this.successMessageSenha = "";
-      this.errorMessageSenha = "";
-
-      const senhas = {
-        senhaAtual: this.formSenha.senhaAtual,
-        novaSenha: this.formSenha.novaSenha,
-      };
-
-      axios
-        .put(
-          `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/${this.usuario.id}/senha`,
-          senhas
-        )
-        .then(() => {
-          this.loadingSenha = false;
-          this.successMessageSenha = "Senha alterada com sucesso!";
-
-          this.formSenha = {
-            senhaAtual: "",
-            novaSenha: "",
-            confirmarSenha: "",
-          };
-        })
-        .catch((error) => {
-          console.error("Erro ao alterar senha:", error);
-          this.loadingSenha = false;
-          this.errorMessageSenha =
-            error.response?.data?.message ||
-            "Erro ao alterar senha. Tente novamente.";
-        });
-    },
-    formatarValor(valor) {
-      if (valor === undefined || valor === null) {
-        return "0,00";
-      }
-      return valor.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    },
-    formatarData(data) {
-      if (!data) return "Data não disponível";
-
-      const options = { day: "2-digit", month: "2-digit", year: "numeric" };
-      return new Date(data).toLocaleDateString("pt-BR", options);
-    },
-    getStatusClass(status) {
-      const classes = {
-        CONFIRMADA: "badge bg-success",
-        PENDENTE: "badge bg-warning text-dark",
-        CANCELADA: "badge bg-danger",
-      };
-      return classes[status] || "badge bg-secondary";
-    },
-  },
+const carregarDadosUsuario = async () => {
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/atual`
+    );
+    usuario.value = resp.data;
+    formPerfil.nome = usuario.value.nome || "";
+    formPerfil.email = usuario.value.email || "";
+    formPerfil.telefone = usuario.value.telefone || "";
+    formPerfil.cpf = usuario.value.cpfCnpj || "";
+    formPerfil.endereco = usuario.value.endereco || "";
+  } catch (e) {
+    console.error("Erro ao carregar usuario:", e);
+  }
 };
+
+const carregarDoacoes = async () => {
+  loadingDoacoes.value = true;
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/usuario/atual`
+    );
+    doacoes.value = resp.data;
+  } catch (e) {
+    console.error("Erro ao carregar doacoes:", e);
+  } finally {
+    loadingDoacoes.value = false;
+  }
+};
+
+const getStatusClass = (status) =>
+  ({
+    CONFIRMADA: "badge bg-success",
+    PENDENTE: "badge bg-secondary",
+    CANCELADA: "badge bg-danger",
+  }[status] || "badge bg-secondary");
+
+const atualizarPerfil = async () => {
+  loadingPerfil.value = true;
+  successMessage.value = "";
+  errorMessage.value = "";
+  const usuarioAtualizado = {
+    nome: formPerfil.nome,
+    email: formPerfil.email,
+    telefone: formPerfil.telefone,
+    endereco: formPerfil.endereco,
+  };
+  try {
+    await axios.put(
+      `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/${usuario.value.id}`,
+      usuarioAtualizado
+    );
+    loadingPerfil.value = false;
+    successMessage.value = "Perfil atualizado com sucesso!";
+    const updatedUser = { ...usuario.value, ...usuarioAtualizado };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    store.commit("auth_success", {
+      token: store.state.token,
+      user: updatedUser,
+    });
+    usuario.value = updatedUser;
+  } catch (e) {
+    console.error("Erro ao atualizar perfil:", e);
+    loadingPerfil.value = false;
+    errorMessage.value =
+      e.response?.data?.message || "Erro ao atualizar perfil. Tente novamente.";
+  }
+};
+
+// TODO: As operações de atualização estao atualizando o LocalStorage com um usuário
+// que segue um contrato diferente do que o fluxo /atual do login.
+// Isso faz com que usuários administradores percam suas permissões ao atualizar o
+// perfil (até que façam logou e login novamente).
+// Corrigir...
+const alterarSenha = async () => {
+  if (!senhasIguais.value) {
+    errorMessageSenha.value = "As senhas nao coincidem.";
+    return;
+  }
+  if (!senhaValida.value) {
+    errorMessageSenha.value = "A senha deve ter pelo menos 6 caracteres.";
+    return;
+  }
+  loadingSenha.value = true;
+  successMessageSenha.value = "";
+  errorMessageSenha.value = "";
+  try {
+    await axios.put(
+      `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/${usuario.value.id}/senha`,
+      { senhaAtual: formSenha.senhaAtual, novaSenha: formSenha.novaSenha }
+    );
+    loadingSenha.value = false;
+    successMessageSenha.value = "Senha alterada com sucesso!";
+    formSenha.senhaAtual = formSenha.novaSenha = formSenha.confirmarSenha = "";
+  } catch (e) {
+    console.error("Erro ao alterar senha:", e);
+    loadingSenha.value = false;
+    errorMessageSenha.value =
+      e.response?.data?.message || "Erro ao alterar senha. Tente novamente.";
+  }
+};
+
+onMounted(() => {
+  carregarDadosUsuario();
+  carregarDoacoes();
+});
 </script>
 
 <style scoped>

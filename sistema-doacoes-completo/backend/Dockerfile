@@ -13,4 +13,8 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
+# Create uploads directory and expose as volume
+RUN mkdir -p /app/uploads
+VOLUME ["/app/uploads"]
+
 ENTRYPOINT ["java", "-jar", "app.jar"]

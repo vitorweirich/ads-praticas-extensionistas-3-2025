@@ -45,16 +45,11 @@
                   <i class="fas fa-calendar-alt me-2"></i>
                   Término: {{ formatarData(campanha.dataTermino) }}
                 </p>
-                <div class="progress mb-3" style="height: 10px">
-                  <div
-                    class="progress-bar bg-success"
-                    role="progressbar"
-                    :style="{ width: progressoPercentual + '%' }"
-                    :aria-valuenow="progressoPercentual"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                  ></div>
-                </div>
+                <ProgressBar
+                  :value="progressoPercentual"
+                  height="10px"
+                  barClass="bg-success"
+                />
                 <div class="d-flex justify-content-between mb-4">
                   <div>
                     <strong>Arrecadado:</strong> R$
@@ -344,187 +339,163 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "vuex";
 import axios from "axios";
 import { formatarValor, formatarData } from "../utils";
+import ProgressBar from "../components/ProgressBar.vue";
 
-export default {
-  name: "CampanhaDetalheView",
-  data() {
-    return {
-      campanhaId: null,
-      campanha: {},
-      doacoesRecentes: [],
-      loading: true,
-      error: null,
-      showDoacaoModal: false,
-      doacao: {
-        valor: 50,
-        anonimo: false,
-        formaPagamento: "",
-        mensagem: "",
-      },
-      doacaoLoading: false,
-    };
-  },
-  computed: {
-    progressoPercentual() {
-      if (!this.campanha.metaFinanceira || this.campanha.metaFinanceira === 0) {
-        return 0;
-      }
-      const percentual =
-        (this.campanha.valorArrecadado / this.campanha.metaFinanceira) * 100;
-      return Math.min(Math.round(percentual), 100);
-    },
-    diasRestantes() {
-      if (!this.campanha.dataTermino) {
-        return "N/A";
-      }
+const route = useRoute();
+const store = useStore();
 
-      const hoje = new Date();
-      const dataTermino = new Date(this.campanha.dataTermino);
-      const diffTime = dataTermino - hoje;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+const campanhaId = ref(route.params.id);
+const campanha = ref({});
+const doacoesRecentes = ref([]);
+const loading = ref(true);
+const error = ref(null);
+const showDoacaoModal = ref(false);
+const doacao = ref({
+  valor: 50,
+  anonimo: false,
+  formaPagamento: "",
+  mensagem: "",
+});
+const doacaoLoading = ref(false);
 
-      if (diffDays < 0) {
-        return "Encerrada";
-      }
-      return diffDays;
-    },
-  },
-  created() {
-    this.campanhaId = this.$route.params.id;
-    this.carregarCampanha();
-    this.carregarDoacoesRecentes();
-  },
-  methods: {
-    carregarCampanha() {
-      this.loading = true;
-      this.error = null;
+const progressoPercentual = computed(() => {
+  if (!campanha.value.metaFinanceira || campanha.value.metaFinanceira === 0)
+    return 0;
+  const percentual =
+    (campanha.value.valorArrecadado / campanha.value.metaFinanceira) * 100;
+  return Math.min(Math.round(percentual), 100);
+});
 
-      axios
-        .get(
-          `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${this.campanhaId}`
-        )
-        .then((response) => {
-          this.campanha = response.data;
-          this.loading = false;
-        })
-        .catch((error) => {
-          console.error("Erro ao carregar campanha:", error);
-          this.error =
-            "Não foi possível carregar os detalhes da campanha. Por favor, tente novamente mais tarde.";
-          this.loading = false;
-        });
-    },
-    carregarDoacoesRecentes() {
-      axios
-        .get(
-          `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/campanha/${this.campanhaId}`
-        )
-        .then((response) => {
-          // O backend já retorna as doações ordenadas e limitadas
-          this.doacoesRecentes = response.data;
-        })
-        .catch(() => {
-          // Show empty donations list in case of error
-          this.doacoesRecentes = [];
-        });
-    },
-    formatarValor,
-    formatarData,
-    getStatusClass(status) {
-      const classes = {
-        ATIVA: "badge bg-success",
-        FINALIZADA: "badge bg-secondary",
-        CANCELADA: "badge bg-danger",
-      };
-      return classes[status] || "badge bg-secondary";
-    },
-    compartilhar(rede) {
-      const url = window.location.href;
-      const titulo = `Ajude na campanha: ${this.campanha.titulo}`;
+// ...existing code...
 
-      let shareUrl = "";
+const diasRestantes = computed(() => {
+  if (!campanha.value.dataTermino) return "N/A";
+  const hoje = new Date();
+  const dataTermino = new Date(campanha.value.dataTermino);
+  const diffTime = dataTermino - hoje;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return "Encerrada";
+  return diffDays;
+});
 
-      switch (rede) {
-        case "facebook":
-          shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-            url
-          )}`;
-          break;
-        case "twitter":
-          shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-            titulo
-          )}&url=${encodeURIComponent(url)}`;
-          break;
-        case "whatsapp":
-          shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
-            titulo + " " + url
-          )}`;
-          break;
-        case "email":
-          shareUrl = `mailto:?subject=${encodeURIComponent(
-            titulo
-          )}&body=${encodeURIComponent("Confira esta campanha: " + url)}`;
-          break;
-      }
-
-      if (shareUrl) {
-        window.open(shareUrl, "_blank");
-      }
-    },
-    fazerDoacao() {
-      if (!this.doacao.valor || !this.doacao.formaPagamento) {
-        alert("Por favor, preencha todos os campos obrigatórios.");
-        return;
-      }
-
-      this.doacaoLoading = true;
-
-      const doacaoObj = {
-        campanha: { id: this.campanhaId },
-        valor: this.doacao.valor,
-        anonimo: this.doacao.anonimo,
-        formaPagamento: this.doacao.formaPagamento,
-        mensagem: this.doacao.mensagem,
-        status: "PENDENTE",
-      };
-
-      if (!this.doacao.anonimo && this.$store.getters.isLoggedIn) {
-        doacaoObj.doador = { id: this.$store.getters.currentUser.id };
-      }
-
-      axios
-        .post(`${process.env.VUE_APP_API_BASE_URL}/api/doacoes`, doacaoObj)
-        .then(() => {
-          this.doacaoLoading = false;
-          this.showDoacaoModal = false;
-
-          this.doacao = {
-            valor: 50,
-            anonimo: false,
-            formaPagamento: "",
-            mensagem: "",
-          };
-
-          alert(
-            "Doação realizada com sucesso! Obrigado pela sua contribuição."
-          );
-
-          this.carregarCampanha();
-          this.carregarDoacoesRecentes();
-        })
-        .catch((error) => {
-          console.error("Erro ao processar doação:", error);
-          this.doacaoLoading = false;
-          alert(
-            "Ocorreu um erro ao processar sua doação. Por favor, tente novamente."
-          );
-        });
-    },
-  },
+const carregarCampanha = async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanhaId.value}`
+    );
+    campanha.value = resp.data;
+  } catch (e) {
+    console.error("Erro ao carregar campanha:", e);
+    error.value =
+      "Não foi possível carregar os detalhes da campanha. Por favor, tente novamente mais tarde.";
+  } finally {
+    loading.value = false;
+  }
 };
+
+const carregarDoacoesRecentes = async () => {
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/campanha/${campanhaId.value}`
+    );
+    doacoesRecentes.value = resp.data;
+  } catch (e) {
+    doacoesRecentes.value = [];
+  }
+};
+
+const getStatusClass = (status) =>
+  ({
+    ATIVA: "badge bg-success",
+    FINALIZADA: "badge bg-secondary",
+    CANCELADA: "badge bg-danger",
+  }[status] || "badge bg-secondary");
+
+const compartilhar = (rede) => {
+  const url = window.location.href;
+  const titulo = `Ajude na campanha: ${campanha.value.titulo}`;
+  let shareUrl = "";
+  switch (rede) {
+    case "facebook":
+      shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+        url
+      )}`;
+      break;
+    case "twitter":
+      shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+        titulo
+      )}&url=${encodeURIComponent(url)}`;
+      break;
+    case "whatsapp":
+      shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
+        titulo + " " + url
+      )}`;
+      break;
+    case "email":
+      shareUrl = `mailto:?subject=${encodeURIComponent(
+        titulo
+      )}&body=${encodeURIComponent("Confira esta campanha: " + url)}`;
+      break;
+  }
+  if (shareUrl) window.open(shareUrl, "_blank");
+};
+
+const fazerDoacao = async () => {
+  if (!doacao.value.valor || !doacao.value.formaPagamento) {
+    alert("Por favor, preencha todos os campos obrigatórios.");
+    return;
+  }
+  doacaoLoading.value = true;
+  const doacaoObj = {
+    campanha: { id: campanhaId.value },
+    valor: doacao.value.valor,
+    anonimo: doacao.value.anonimo,
+    formaPagamento: doacao.value.formaPagamento,
+    mensagem: doacao.value.mensagem,
+    status: "PENDENTE",
+  };
+
+  if (!doacao.value.anonimo && store.getters && store.getters.currentUser) {
+    doacaoObj.doador = { id: store.getters.currentUser.id };
+  }
+
+  try {
+    await axios.post(
+      `${process.env.VUE_APP_API_BASE_URL}/api/doacoes`,
+      doacaoObj
+    );
+    doacaoLoading.value = false;
+    showDoacaoModal.value = false;
+    doacao.value = {
+      valor: 50,
+      anonimo: false,
+      formaPagamento: "",
+      mensagem: "",
+    };
+    alert("Doação realizada com sucesso! Obrigado pela sua contribuição.");
+    carregarCampanha();
+    carregarDoacoesRecentes();
+  } catch (e) {
+    console.error("Erro ao processar doação:", e);
+    doacaoLoading.value = false;
+    alert(
+      "Ocorreu um erro ao processar sua doação. Por favor, tente novamente."
+    );
+  }
+};
+
+onMounted(() => {
+  carregarCampanha();
+  carregarDoacoesRecentes();
+});
 </script>
 
 <style scoped>
