@@ -30,6 +30,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.stream.Stream;
+import java.util.regex.Pattern;
 
 import com.doacoes.api.model.Campanha;
 import com.doacoes.api.payload.response.MessageResponse;
@@ -103,7 +105,7 @@ public class CampanhaController {
             @RequestPart(value = "imagem", required = false) MultipartFile imagemFile) {
         try {
             if (imagemFile != null && !imagemFile.isEmpty()) {
-                String fileUrl = storeImageAndGetUrl(imagemFile);
+                String fileUrl = storeImageAndGetUrl(imagemFile, campanha);
                 campanha.setImagemCapa(fileUrl);
             }
 
@@ -164,7 +166,7 @@ public class CampanhaController {
             campanha.setDescricao(campanhaAtualizada.getDescricao());
 
             if (imagemFile != null && !imagemFile.isEmpty()) {
-                String fileUrl = storeImageAndGetUrl(imagemFile);
+                String fileUrl = storeImageAndGetUrl(imagemFile, campanha);
                 campanha.setImagemCapa(fileUrl);
             } else {
                 campanha.setImagemCapa(campanhaAtualizada.getImagemCapa());
@@ -189,8 +191,32 @@ public class CampanhaController {
     @Transactional
     public ResponseEntity<?> excluirCampanha(@PathVariable Long id) {
         try {
-        	transparenciaRepository.deleteByCampanhaId(id);
-        	doacaoRepository.deleteByCampanhaId(id);
+            // Remove uploaded image files related to this campanha.
+            try {
+                Path uploadDir = Paths.get("uploads");
+                if (Files.exists(uploadDir) && Files.isDirectory(uploadDir)) {
+                    // Match filenames like <timestamp>_<campanhaId> or <timestamp>_<campanhaId>.<ext>
+                    Pattern ptn = Pattern.compile(".*_" + id + "(\\..+)?$");
+                    try (Stream<Path> stream = Files.list(uploadDir)) {
+                        stream.filter(Files::isRegularFile)
+                              .filter(p -> ptn.matcher(p.getFileName().toString()).matches())
+                              .forEach(p -> {
+                                  try {
+                                      Files.deleteIfExists(p);
+                                  } catch (Exception ex) {
+                                      // log and continue
+                                      System.err.println("Erro ao deletar arquivo de upload: " + p + ", " + ex.getMessage());
+                                  }
+                              });
+                    }
+                }
+            } catch (Exception ex) {
+                // Non-fatal: continue with DB deletions but report
+                System.err.println("Erro ao limpar arquivos de upload da campanha " + id + ": " + ex.getMessage());
+            }
+
+            transparenciaRepository.deleteByCampanhaId(id);
+            doacaoRepository.deleteByCampanhaId(id);
             campanhaRepository.deleteById(id);
             return ResponseEntity.ok(new MessageResponse("Campanha excluída com sucesso!"));
         } catch (Exception e) {
@@ -206,8 +232,18 @@ public class CampanhaController {
         return ResponseEntity.ok(campanhas);
     }
 
-    private String storeImageAndGetUrl(MultipartFile imagemFile) throws Exception {
-        String filename = StringUtils.cleanPath(imagemFile.getOriginalFilename());
+    private String storeImageAndGetUrl(MultipartFile imagemFile, Campanha campanha) throws Exception {
+        // Preserve original file extension when storing the file
+        String originalName = imagemFile.getOriginalFilename();
+        String extension = "";
+        if (originalName != null) {
+            int idx = originalName.lastIndexOf('.');
+            if (idx >= 0) {
+                extension = originalName.substring(idx);
+            }
+        }
+        String idPart = (campanha != null && campanha.getId() != null) ? campanha.getId().toString() : "tmp";
+        String filename = StringUtils.cleanPath(idPart) + extension;
         Path uploadDir = Paths.get("uploads");
         Files.createDirectories(uploadDir);
         Path target = uploadDir.resolve(System.currentTimeMillis() + "_" + filename);
