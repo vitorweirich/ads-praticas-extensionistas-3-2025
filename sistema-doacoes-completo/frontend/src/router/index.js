@@ -10,6 +10,8 @@ import NotFoundView from "../views/NotFoundView.vue";
 import CampanhaDetalheView from "../views/CampanhaDetalheView.vue";
 import AdministracaoCampanhaView from "../views/AdministracaoCampanhaView.vue";
 
+// TODO: Criar view para contato.
+
 const routes = [
   {
     path: "/",

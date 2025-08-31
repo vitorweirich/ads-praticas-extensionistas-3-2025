@@ -577,15 +577,59 @@
               </div>
 
               <div class="mb-3">
-                <label for="imagemCapa" class="form-label"
+                <label for="imagemCapaUrl" class="form-label"
                   >URL da Imagem de Capa</label
                 >
                 <input
                   type="url"
                   class="form-control"
-                  id="imagemCapa"
+                  id="imagemCapaUrl"
                   v-model="campanhaSelecionada.imagemCapa"
+                  placeholder="Cole a URL da imagem (opcional, será substituída se enviar arquivo)"
                 />
+                <div class="form-text mt-1">
+                  Ou envie um arquivo de imagem abaixo (arquivo terá
+                  prioridade).
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="imagemCapaFile" class="form-label"
+                  >Enviar Imagem</label
+                >
+                <input
+                  id="imagemCapaFile"
+                  class="form-control"
+                  type="file"
+                  accept="image/*"
+                  @change="onCampanhaFileChange"
+                />
+                <div v-if="campanhaImagemFileName" class="form-text mt-1">
+                  Arquivo selecionado: {{ campanhaImagemFileName }}
+                </div>
+                <!-- Image preview: shows selected file or the URL from imagemCapa -->
+                <div v-if="campanhaImagemPreview" class="mt-3">
+                  <label class="form-label d-block">Preview da Imagem</label>
+                  <div style="max-width: 320px">
+                    <img
+                      :src="campanhaImagemPreview"
+                      alt="Preview imagem da campanha"
+                      class="img-fluid rounded"
+                      style="
+                        max-height: 200px;
+                        object-fit: contain;
+                        width: 100%;
+                        border: 1px solid #e9ecef;
+                        padding: 4px;
+                        background: #fff;
+                      "
+                    />
+                  </div>
+                  <div class="form-text mt-1">
+                    A imagem acima será enviada (se você escolher um arquivo) ou
+                    usada pela URL informada.
+                  </div>
+                </div>
               </div>
 
               <div class="mb-3">
@@ -872,7 +916,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, watch, onBeforeUnmount } from "vue";
 import axios from "axios";
 import { formatarData, formatarValor } from "../utils";
 
@@ -933,6 +977,13 @@ const salvandoUsuario = ref(false);
 
 const senhasIguais = () =>
   usuarioSelecionado.senha === usuarioSelecionado.confirmarSenha;
+
+const campanhaImagemFile = ref(null);
+const campanhaImagemFileName = ref("");
+const campanhaImagemPreview = ref("");
+
+// Keep track of any created object URL so we can revoke it later
+let _currentObjectUrl = null;
 
 const carregarDados = async () => {
   loading.value = true;
@@ -1038,11 +1089,58 @@ function novaCampanha() {
     status: "ATIVA",
   };
   showModalCampanha.value = true;
+
+  campanhaImagemPreview.value = "";
+}
+
+function onCampanhaFileChange(e) {
+  const file = e.target.files && e.target.files[0];
+  if (file) {
+    campanhaImagemFile.value = file;
+    campanhaImagemFileName.value = file.name;
+
+    if (_currentObjectUrl) {
+      try {
+        URL.revokeObjectURL(_currentObjectUrl);
+      } catch (err) {
+        //
+      }
+      _currentObjectUrl = null;
+    }
+    _currentObjectUrl = URL.createObjectURL(file);
+    campanhaImagemPreview.value = _currentObjectUrl;
+  } else {
+    campanhaImagemFile.value = null;
+    campanhaImagemFileName.value = "";
+
+    if (_currentObjectUrl) {
+      try {
+        URL.revokeObjectURL(_currentObjectUrl);
+      } catch (err) {
+        //
+      }
+      _currentObjectUrl = null;
+    }
+
+    campanhaImagemPreview.value = campanhaSelecionada.imagemCapa || "";
+  }
 }
 
 const editarCampanha = (c) => {
   Object.assign(campanhaSelecionada, c);
   showModalCampanha.value = true;
+  campanhaImagemFile.value = null;
+  campanhaImagemFileName.value = "";
+
+  if (_currentObjectUrl) {
+    try {
+      URL.revokeObjectURL(_currentObjectUrl);
+    } catch (err) {
+      //
+    }
+    _currentObjectUrl = null;
+  }
+  campanhaImagemPreview.value = c.imagemCapa || "";
 };
 
 const getStatusClass = (status) =>
@@ -1058,15 +1156,26 @@ async function salvarCampanha() {
   salvandoCampanha.value = true;
 
   try {
+    const campanhaPayload = JSON.stringify(campanhaSelecionada);
+    const form = new FormData();
+    form.append(
+      "campanha",
+      new Blob([campanhaPayload], { type: "application/json" })
+    );
+    if (campanhaImagemFile.value) {
+      form.append("imagem", campanhaImagemFile.value);
+    }
+
     if (campanhaSelecionada.id) {
       await axios.put(
         `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanhaSelecionada.id}`,
-        campanhaSelecionada
+        form,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
     } else {
       await axios.post(
         `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`,
-        campanhaSelecionada
+        form
       );
     }
 
@@ -1117,7 +1226,39 @@ function fecharModalCampanha() {
     beneficiarios: "",
     status: "ATIVA",
   };
+  campanhaImagemFile.value = null;
+  campanhaImagemFileName.value = "";
+
+  if (_currentObjectUrl) {
+    try {
+      URL.revokeObjectURL(_currentObjectUrl);
+    } catch (err) {
+      //
+    }
+    _currentObjectUrl = null;
+  }
+  campanhaImagemPreview.value = "";
 }
+
+watch(
+  () => campanhaSelecionada.imagemCapa,
+  (newUrl) => {
+    if (!campanhaImagemFile.value) {
+      campanhaImagemPreview.value = newUrl || "";
+    }
+  }
+);
+
+onBeforeUnmount(() => {
+  if (_currentObjectUrl) {
+    try {
+      URL.revokeObjectURL(_currentObjectUrl);
+    } catch (err) {
+      //
+    }
+    _currentObjectUrl = null;
+  }
+});
 
 async function confirmarDoacao(doacao) {
   if (

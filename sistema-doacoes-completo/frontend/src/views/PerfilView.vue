@@ -425,6 +425,11 @@ const atualizarPerfil = async () => {
   }
 };
 
+// TODO: As operações de atualização estao atualizando o LocalStorage com um usuário
+// que segue um contrato diferente do que o fluxo /atual do login.
+// Isso faz com que usuários administradores percam suas permissões ao atualizar o
+// perfil (até que façam logou e login novamente).
+// Corrigir...
 const alterarSenha = async () => {
   if (!senhasIguais.value) {
     errorMessageSenha.value = "As senhas nao coincidem.";
