@@ -622,7 +622,6 @@
     </div>
 
     <!-- Modal de Nova Campanha -->
-    <!-- TODO: Validar inputs no front -->
     <div
       class="modal fade"
       :class="{ 'show d-block': showModalCampanha }"
@@ -641,8 +640,8 @@
               @click="fecharModalCampanha"
             ></button>
           </div>
-          <div class="modal-body">
-            <form @submit.prevent="salvarCampanha">
+          <form @submit.prevent="salvarCampanha">
+            <div class="modal-body">
               <div class="row mb-3">
                 <div class="col-md-8">
                   <label for="titulo" class="form-label">Título</label>
@@ -777,6 +776,7 @@
                   id="beneficiarios"
                   v-model="campanhaSelecionada.beneficiarios"
                   rows="3"
+                  required
                 ></textarea>
               </div>
 
@@ -793,30 +793,30 @@
                   <option value="CANCELADA">Cancelada</option>
                 </select>
               </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="fecharModalCampanha"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              @click="salvarCampanha"
-              :disabled="salvandoCampanha"
-            >
-              <span
-                v-if="salvandoCampanha"
-                class="spinner-border spinner-border-sm me-2"
-                role="status"
-              ></span>
-              Salvar
-            </button>
-          </div>
+              <!-- form intentionally kept open so modal-footer buttons are inside the form -->
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                @click="fecharModalCampanha"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                :disabled="salvandoCampanha"
+              >
+                <span
+                  v-if="salvandoCampanha"
+                  class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                ></span>
+                Salvar
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

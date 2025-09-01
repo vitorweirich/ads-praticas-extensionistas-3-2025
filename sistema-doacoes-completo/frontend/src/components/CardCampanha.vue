@@ -5,7 +5,7 @@
         campanha.imagemCapa ||
         'https://via.placeholder.com/300x200?text=Campanha'
       "
-      class="card-img-top"
+      class="card-img-top campanha-img"
       alt="Imagem da campanha"
     />
     <div class="card-body">
@@ -49,3 +49,15 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.card-campanha .campanha-img {
+  width: 100%;
+  height: 300px;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  background-color: #f8f9fa;
+  padding: 8px;
+}
+</style>

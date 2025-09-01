@@ -11,8 +11,6 @@ import CampanhaDetalheView from "../views/CampanhaDetalheView.vue";
 import AdministracaoCampanhaView from "../views/AdministracaoCampanhaView.vue";
 import ContatoView from "../views/ContatoView.vue";
 
-// TODO: Criar view para contato.
-
 const routes = [
   {
     path: "/",
