@@ -67,6 +67,7 @@ public class WebSecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .authorizeHttpRequests(auth -> auth
             		.antMatchers("/uploads/**").permitAll()
+                    .antMatchers("/api/contato/emails", "/api/contato/enviar").permitAll()
                     .antMatchers("/api/auth/**").permitAll()
                     .antMatchers("/api/campanhas/publicas/**").permitAll()
                     .antMatchers("/api/campanhas/{id}").permitAll()

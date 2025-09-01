@@ -78,12 +78,14 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useStore } from "vuex";
 import axios from "axios";
 import router from "../router";
 
 const form = ref({ email: "", titulo: "", descricao: "" });
 const emails = ref([]);
 const enviando = ref(false);
+const store = useStore();
 
 const carregarEmails = async () => {
   try {
@@ -118,6 +120,17 @@ const enviar = async () => {
 
 onMounted(() => {
   carregarEmails();
+
+  try {
+    if (store.getters && store.getters.isLoggedIn) {
+      const user = store.getters.currentUser || {};
+      if (user.email) {
+        form.value.email = user.email;
+      }
+    }
+  } catch (e) {
+    console.error("Erro ao inicializar email do usuário autenticado", e);
+  }
 });
 </script>
 
