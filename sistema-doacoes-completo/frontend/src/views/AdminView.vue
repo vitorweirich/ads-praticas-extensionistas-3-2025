@@ -79,70 +79,78 @@
           <ul class="nav nav-tabs" id="adminTab" role="tablist">
             <li class="nav-item" role="presentation">
               <button
-                class="nav-link active"
+                :class="['nav-link', { active: currentTab === 'campanhas' }]"
                 id="campanhas-tab"
                 data-bs-toggle="tab"
                 data-bs-target="#campanhas"
                 type="button"
                 role="tab"
                 aria-controls="campanhas"
-                aria-selected="true"
+                :aria-selected="currentTab === 'campanhas'"
+                @click.prevent="setTab('campanhas')"
               >
                 Campanhas
               </button>
             </li>
             <li class="nav-item" role="presentation">
               <button
-                class="nav-link"
+                :class="['nav-link', { active: currentTab === 'doacoes' }]"
                 id="doacoes-tab"
                 data-bs-toggle="tab"
                 data-bs-target="#doacoes"
                 type="button"
                 role="tab"
                 aria-controls="doacoes"
-                aria-selected="false"
+                :aria-selected="currentTab === 'doacoes'"
+                @click.prevent="setTab('doacoes')"
               >
                 Doações
               </button>
             </li>
             <li class="nav-item" role="presentation">
               <button
-                class="nav-link"
+                :class="[
+                  'nav-link',
+                  { active: currentTab === 'transparencia' },
+                ]"
                 id="transparencia-tab"
                 data-bs-toggle="tab"
                 data-bs-target="#transparencia"
                 type="button"
                 role="tab"
                 aria-controls="transparencia"
-                aria-selected="false"
+                :aria-selected="currentTab === 'transparencia'"
+                @click.prevent="setTab('transparencia')"
               >
                 Transparência
               </button>
             </li>
             <li class="nav-item" role="presentation">
               <button
-                class="nav-link"
+                :class="['nav-link', { active: currentTab === 'usuarios' }]"
                 id="usuarios-tab"
                 data-bs-toggle="tab"
                 data-bs-target="#usuarios"
                 type="button"
                 role="tab"
                 aria-controls="usuarios"
-                aria-selected="false"
+                :aria-selected="currentTab === 'usuarios'"
+                @click.prevent="setTab('usuarios')"
               >
                 Usuários
               </button>
             </li>
             <li class="nav-item" role="presentation">
               <button
-                class="nav-link"
+                :class="['nav-link', { active: currentTab === 'mensagens' }]"
                 id="mensagens-tab"
                 data-bs-toggle="tab"
                 data-bs-target="#mensagens"
                 type="button"
                 role="tab"
                 aria-controls="mensagens"
-                aria-selected="false"
+                :aria-selected="currentTab === 'mensagens'"
+                @click.prevent="setTab('mensagens')"
               >
                 Mensagens
               </button>
@@ -151,7 +159,14 @@
           <div class="tab-content" id="adminTabContent">
             <!-- Aba de Campanhas -->
             <div
-              class="tab-pane fade show active"
+              :class="[
+                'tab-pane',
+                'fade',
+                {
+                  show: currentTab === 'campanhas',
+                  active: currentTab === 'campanhas',
+                },
+              ]"
               id="campanhas"
               role="tabpanel"
               aria-labelledby="campanhas-tab"
@@ -244,7 +259,14 @@
 
             <!-- Aba de Doações -->
             <div
-              class="tab-pane fade"
+              :class="[
+                'tab-pane',
+                'fade',
+                {
+                  show: currentTab === 'doacoes',
+                  active: currentTab === 'doacoes',
+                },
+              ]"
               id="doacoes"
               role="tabpanel"
               aria-labelledby="doacoes-tab"
@@ -333,7 +355,14 @@
 
             <!-- Aba de Transparência -->
             <div
-              class="tab-pane fade"
+              :class="[
+                'tab-pane',
+                'fade',
+                {
+                  show: currentTab === 'transparencia',
+                  active: currentTab === 'transparencia',
+                },
+              ]"
               id="transparencia"
               role="tabpanel"
               aria-labelledby="transparencia-tab"
@@ -415,7 +444,14 @@
 
             <!-- Aba de Usuários -->
             <div
-              class="tab-pane fade"
+              :class="[
+                'tab-pane',
+                'fade',
+                {
+                  show: currentTab === 'usuarios',
+                  active: currentTab === 'usuarios',
+                },
+              ]"
               id="usuarios"
               role="tabpanel"
               aria-labelledby="usuarios-tab"
@@ -508,7 +544,14 @@
           </div>
           <!-- Aba de Mensagens -->
           <div
-            class="tab-pane fade"
+            :class="[
+              'tab-pane',
+              'fade',
+              {
+                show: currentTab === 'mensagens',
+                active: currentTab === 'mensagens',
+              },
+            ]"
             id="mensagens"
             role="tabpanel"
             aria-labelledby="mensagens-tab"
@@ -999,6 +1042,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch, onBeforeUnmount } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { formatarData, formatarValor } from "../utils";
 
@@ -1192,7 +1236,73 @@ const carregarUsuarios = async () => {
   }
 };
 
-onMounted(() => carregarDados());
+const route = useRoute();
+const router = useRouter();
+
+const validTabs = [
+  "campanhas",
+  "doacoes",
+  "transparencia",
+  "usuarios",
+  "mensagens",
+];
+
+const currentTab = ref("campanhas");
+
+function setTab(tab) {
+  if (!validTabs.includes(tab)) tab = "campanhas";
+  if (currentTab.value === tab) return;
+  currentTab.value = tab;
+
+  router
+    .replace({
+      name: route.name,
+      params: route.params,
+      query: { ...route.query, tab: tab },
+    })
+    .catch(() => {});
+}
+
+// keep currentTab in sync if user navigates history / query changes
+watch(
+  () => route.query && route.query.tab,
+  (newTab) => {
+    if (newTab && typeof newTab === "string" && validTabs.includes(newTab)) {
+      currentTab.value = newTab;
+    }
+  }
+);
+
+// ensure URL updates when currentTab is changed programmatically
+watch(currentTab, (tab) => {
+  if (!tab) return;
+  if ((route.query && route.query.tab) === tab) return;
+  router
+    .replace({
+      name: route.name,
+      params: route.params,
+      query: { ...route.query, tab },
+    })
+    .catch(() => {});
+});
+
+// initialize from route query and load data
+onMounted(() => {
+  const qTab = (route.query && route.query.tab) || null;
+  if (qTab && typeof qTab === "string" && validTabs.includes(qTab)) {
+    currentTab.value = qTab;
+  } else {
+    // ensure URL contains default tab
+    router
+      .replace({
+        name: route.name,
+        params: route.params,
+        query: { ...route.query, tab: currentTab.value },
+      })
+      .catch(() => {});
+  }
+  carregarDados();
+});
 
 function novaCampanha() {
   campanhaSelecionada.value = {

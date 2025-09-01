@@ -44,7 +44,7 @@ public class ContatoController {
     @GetMapping("/emails")
     public ResponseEntity<List<String>> listarEmailsContato() {
         // static list for now, could come from config
-        List<String> emails = List.of("suporte@doacoes.local", "contato@doacoes.local");
+        List<String> emails = List.of("suporte@doacoes.local", "contato@doacoes.local", "financeiro@doacoes.local", "desenvolvimento@doacoes.local");
         return ResponseEntity.ok(emails);
     }
 

@@ -9,12 +9,28 @@
             <h5 class="card-title">Enviar mensagem</h5>
             <form @submit.prevent="enviar">
               <div class="mb-3">
-                <label class="form-label">Email</label>
+                <div class="d-flex flex-row">
+                  <label class="form-label mb-0">Seu email</label>
+                  <span
+                    class="ms-2 text-muted"
+                    role="button"
+                    tabindex="0"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Informe seu email verdadeiro para que possamos entrar em contato se precisarmos de mais informações"
+                    aria-label="Ajuda: informar seu email"
+                  >
+                    <i class="fas fa-question-circle"></i>
+                  </span>
+                </div>
                 <input
                   v-model="form.email"
                   type="email"
                   class="form-control"
                   required
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="Informe seu email verdadeiro para que possamos entrar em contato se precisarmos de mais informações"
                 />
               </div>
               <div class="mb-3">
@@ -45,7 +61,9 @@
       <div class="col-md-6">
         <div class="card mb-3">
           <div class="card-body">
-            <h5 class="card-title">E-mails para contato</h5>
+            <h5 class="card-title">
+              Ou envie um e-mail para um dos nossos contatos
+            </h5>
             <ul class="list-unstyled">
               <li v-for="email in emails" :key="email">
                 <i class="fas fa-envelope me-2"></i>{{ email }}
@@ -98,7 +116,9 @@ const enviar = async () => {
   }
 };
 
-onMounted(() => carregarEmails());
+onMounted(() => {
+  carregarEmails();
+});
 </script>
 
 <style scoped>
