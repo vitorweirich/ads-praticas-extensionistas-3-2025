@@ -133,6 +133,20 @@
                 Usuários
               </button>
             </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="mensagens-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#mensagens"
+                type="button"
+                role="tab"
+                aria-controls="mensagens"
+                aria-selected="false"
+              >
+                Mensagens
+              </button>
+            </li>
           </ul>
           <div class="tab-content" id="adminTabContent">
             <!-- Aba de Campanhas -->
@@ -488,6 +502,74 @@
                       </tbody>
                     </table>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Aba de Mensagens -->
+          <div
+            class="tab-pane fade"
+            id="mensagens"
+            role="tabpanel"
+            aria-labelledby="mensagens-tab"
+          >
+            <div class="card border-top-0 rounded-top-0">
+              <div class="card-body">
+                <div
+                  class="d-flex justify-content-between align-items-center mb-3"
+                >
+                  <h5 class="card-title">Mensagens de Contato</h5>
+                </div>
+
+                <div v-if="loadingMensagens" class="text-center py-4">
+                  <div
+                    class="spinner-border spinner-border-sm text-primary"
+                    role="status"
+                  ></div>
+                  <span class="ms-2">Carregando mensagens...</span>
+                </div>
+
+                <div v-else class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Email</th>
+                        <th>Título</th>
+                        <th>Descrição</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-if="mensagens.length === 0">
+                        <td colspan="5" class="text-center py-3">
+                          Nenhuma mensagem encontrada
+                        </td>
+                      </tr>
+                      <tr v-for="m in mensagens" :key="m.id">
+                        <td>{{ m.email }}</td>
+                        <td>{{ m.titulo }}</td>
+                        <td>{{ m.descricao }}</td>
+                        <td>{{ formatarData(m.dataEnvio) }}</td>
+                        <td>
+                          <div class="btn-group">
+                            <button
+                              class="btn btn-sm btn-outline-primary"
+                              @click="verMensagem(m)"
+                            >
+                              <i class="fas fa-eye"></i>
+                            </button>
+                            <button
+                              class="btn btn-sm btn-outline-danger"
+                              @click="excluirMensagem(m)"
+                            >
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -925,6 +1007,7 @@ const loadingCampanhas = ref(false);
 const loadingDoacoes = ref(false);
 const loadingAlocacoes = ref(false);
 const loadingUsuarios = ref(false);
+const loadingMensagens = ref(false);
 
 const estatisticas = reactive({
   campanhasAtivas: 0,
@@ -937,6 +1020,7 @@ const campanhas = ref([]);
 const doacoes = ref([]);
 const alocacoes = ref([]);
 const usuarios = ref([]);
+const mensagens = ref([]);
 
 const showModalCampanha = ref(false);
 const showModalAlocacao = ref(false);
@@ -994,6 +1078,7 @@ const carregarDados = async () => {
       carregarDoacoes(),
       carregarAlocacoes(),
       carregarUsuarios(),
+      carregarMensagens(),
     ]);
   } catch (e) {
     console.error("Erro ao carregar dados:", e);
@@ -1001,6 +1086,40 @@ const carregarDados = async () => {
     loading.value = false;
   }
 };
+
+const carregarMensagens = async () => {
+  loadingMensagens.value = true;
+  try {
+    const resp = await axios.get(
+      `${process.env.VUE_APP_API_BASE_URL}/api/contato`
+    );
+    mensagens.value = resp.data;
+  } catch (e) {
+    console.error("Erro ao carregar mensagens:", e);
+    mensagens.value = [];
+  } finally {
+    loadingMensagens.value = false;
+  }
+};
+
+function verMensagem(m) {
+  alert(`De: ${m.email}\nTítulo: ${m.titulo}\n\n${m.descricao}`);
+}
+
+async function excluirMensagem(m) {
+  if (confirm(`Excluir mensagem de ${m.email}?`)) {
+    try {
+      await axios.delete(
+        `${process.env.VUE_APP_API_BASE_URL}/api/contato/${m.id}`
+      );
+      await carregarMensagens();
+      alert("Mensagem excluída com sucesso");
+    } catch (e) {
+      console.error("Erro ao excluir mensagem", e);
+      alert("Erro ao excluir mensagem");
+    }
+  }
+}
 
 const carregarEstatisticas = async () => {
   try {

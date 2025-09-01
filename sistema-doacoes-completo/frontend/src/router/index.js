@@ -9,6 +9,7 @@ import AdminView from "../views/AdminView.vue";
 import NotFoundView from "../views/NotFoundView.vue";
 import CampanhaDetalheView from "../views/CampanhaDetalheView.vue";
 import AdministracaoCampanhaView from "../views/AdministracaoCampanhaView.vue";
+import ContatoView from "../views/ContatoView.vue";
 
 // TODO: Criar view para contato.
 
@@ -42,6 +43,11 @@ const routes = [
     path: "/transparencia",
     name: "transparencia",
     component: TransparenciaView,
+  },
+  {
+    path: "/contato",
+    name: "contato",
+    component: ContatoView,
   },
   {
     path: "/perfil",
