@@ -87,3 +87,18 @@ Para mais detalhes veja o README.md no caminho `./sistema-doacoes-completo/READM
 
 - Frontend: `./sistema-doacoes-completo/frontend`
 - Backend: `./sistema-doacoes-completo/backend`
+
+## Práticas Extensionistas IV
+
+Documentação específica da disciplina (diagramas de arquitetura, DevOps, escolha de infraestrutura e justificativas) está consolidada em:
+
+`./praticas-IV/README.MD`
+
+Link direto no GitHub: [Práticas Extensionistas IV – Entrega 1](praticas-IV/README.MD)
+
+Conteúdos presentes:
+
+- Diagrama de Pacotes (Arquitetura da Aplicação)
+- Diagrama de Implantação
+- Diagrama de Arquitetura DevOps (CI/CD)
+- Justificativa da infraestrutura (Self-host em VPS com Coolify/Dokploy) e plano de evolução
