@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.doacoes</groupId>
     <artifactId>api</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.4.0</version>
     <name>Sistema de Doações API</name>
     <description>API para sistema web de doações</description>
     

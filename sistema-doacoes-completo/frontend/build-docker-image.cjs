@@ -8,6 +8,9 @@ const IMAGE_NAME =
   "registry.vitorweirich.com/praticas-extensionistas-doacoes-frontend";
 const TAG = `${IMAGE_NAME}:${version}`;
 
+// Detecta flag --push
+const PUSH = process.argv.includes("--push");
+
 console.log(`📦 Buildando Docker image: ${TAG} com MODE=${MODE}...`);
 
 try {
@@ -18,6 +21,22 @@ try {
     }
   );
   console.log(`✅ Imagem criada e tags ['${TAG}', 'latest'] adicionadas.`);
+
+  if (PUSH) {
+    try {
+      console.log("⬆️  Pushando imagens para o registry...");
+      execSync(`docker push ${TAG}`, { stdio: "inherit" });
+      execSync(`docker push ${IMAGE_NAME}:latest`, { stdio: "inherit" });
+      console.log("✅ Imagens pushadas com sucesso.");
+    } catch (errPush) {
+      console.error("❌ Erro ao pushar as imagens:", errPush);
+      process.exit(1);
+    }
+  } else {
+    console.log(
+      "⏭️  Push skipped. Run this script with --push to push images after build."
+    );
+  }
 } catch (err) {
   console.error("❌ Erro ao buildar a imagem Docker:", err);
   process.exit(1);
