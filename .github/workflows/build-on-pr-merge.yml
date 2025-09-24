@@ -11,6 +11,7 @@ env:
 
 jobs:
   build-and-notify:
+    if: contains(github.event.head_commit.message, '#deploy')
     runs-on: ubuntu-latest
     permissions:
       contents: read
