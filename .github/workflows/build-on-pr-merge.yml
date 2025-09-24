@@ -56,18 +56,33 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_FRONTEND }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
 
-      - name: Deploy to Coolify
+      - name: Deploy Backend to Coolify
         env:
-          COOLIFY_WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK }}
+          COOLIFY_BACKEND_WEBHOOK: ${{ secrets.COOLIFY_BACKEND_WEBHOOK }}
           COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
         run: |
-          if [ -z "$COOLIFY_WEBHOOK" ]; then
-            echo "COOLIFY_WEBHOOK secret not set; skipping Coolify deployment.";
+          if [ -z "$COOLIFY_BACKEND_WEBHOOK" ]; then
+            echo "COOLIFY_BACKEND_WEBHOOK secret not set; skipping Coolify deployment.";
             exit 0;
           fi
           echo "Triggering Coolify deployment..."
           if [ -n "$COOLIFY_TOKEN" ]; then
-            curl -fsS --request GET "$COOLIFY_WEBHOOK" --header "Authorization: Bearer $COOLIFY_TOKEN"
+            curl -fsS --request GET "$COOLIFY_BACKEND_WEBHOOK" --header "Authorization: Bearer $COOLIFY_TOKEN"
           else
-            curl -fsS --request GET "$COOLIFY_WEBHOOK"
+            curl -fsS --request GET "$COOLIFY_BACKEND_WEBHOOK"
+          fi
+      - name: Deploy Frontend to Coolify
+        env:
+          COOLIFY_FRONTEND_WEBHOOK: ${{ secrets.COOLIFY_FRONTEND_WEBHOOK }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          if [ -z "$COOLIFY_FRONTEND_WEBHOOK" ]; then
+            echo "COOLIFY_FRONTEND_WEBHOOK secret not set; skipping Coolify deployment.";
+            exit 0;
+          fi
+          echo "Triggering Coolify deployment..."
+          if [ -n "$COOLIFY_TOKEN" ]; then
+            curl -fsS --request GET "$COOLIFY_FRONTEND_WEBHOOK" --header "Authorization: Bearer $COOLIFY_TOKEN"
+          else
+            curl -fsS --request GET "$COOLIFY_FRONTEND_WEBHOOK"
           fi
