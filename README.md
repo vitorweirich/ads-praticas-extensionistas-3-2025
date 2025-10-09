@@ -103,6 +103,12 @@ Conteúdos presentes:
 - Diagrama de Arquitetura DevOps (CI/CD)
 - Justificativa da infraestrutura (Self-host em VPS com Coolify/Dokploy) e plano de evolução
 
+## Guia de Deploy
+
+Para instruções detalhadas de deploy do sistema em VPS com Coolify, consulte o arquivo [`DEPLOY.md`](DEPLOY.md) na raiz do repositório.
+
+---
+
 ## Workflow de Deploy (GitHub Actions)
 
 Este repositório contém um workflow de deploy automatizado via GitHub Actions em `.github/workflows/build-on-pr-merge.yml`.
@@ -159,3 +165,7 @@ Variáveis de ambiente do workflow (podem ser ajustadas no arquivo do workflow)
 - `REGISTRY`: endereço do registro Docker.
 - `IMAGE_BACKEND`: nome do repositório da imagem do backend.
 - `IMAGE_FRONTEND`: nome do repositório da imagem do frontend.
+
+## Documentação da API Pública
+
+Para integração externa e consulta das campanhas públicas, consulte a documentação simplificada em [`PUBLIC_API.md`](PUBLIC_API.md).
