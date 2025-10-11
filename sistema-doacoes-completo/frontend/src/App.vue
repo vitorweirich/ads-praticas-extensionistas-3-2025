@@ -39,6 +39,14 @@
                 >Sobre</a
               >
             </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                :href="`/SIMPLIFIED_README.pdf`"
+                target="_blank"
+                >Sobre (Resumido)</a
+              >
+            </li>
           </ul>
           <ul class="navbar-nav">
             <template v-if="!isLoggedIn">
