@@ -107,6 +107,8 @@ Conteúdos presentes:
 
 Para instruções detalhadas de deploy do sistema em VPS com Coolify, consulte o arquivo [`DEPLOY.md`](DEPLOY.md) na raiz do repositório.
 
+> **Assista à demonstração em vídeo do processo de deploy:**[youtube](https://www.youtube.com/watch?v=P8E9yaS3bn8)
+
 ---
 
 ## Workflow de Deploy (GitHub Actions)

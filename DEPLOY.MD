@@ -1,5 +1,7 @@
 # Guia de Deploy – Sistema de Doações com Coolify em VPS
 
+> **Assista à demonstração em vídeo do processo de deploy:**[youtube](https://www.youtube.com/watch?v=P8E9yaS3bn8)
+
 ## 1. Pré-requisitos
 
 - Este guia apresenta um fluxo simplificado e pressupõe que o usuário já possui conhecimento básico sobre Coolify (instalação, navegação e conceitos principais). Caso não tenha, recomenda-se fortemente a leitura da [documentação oficial do Coolify](https://coolify.io/docs), que é bastante completa e cobre todos os detalhes necessários para operar a plataforma.

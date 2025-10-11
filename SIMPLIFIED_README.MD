@@ -25,7 +25,7 @@ Este repositório contém o **Sistema Web de Doações**, desenvolvido para apoi
 - `sistema-doacoes-completo/frontend/` — Código fonte do frontend (Vue.js)
 - `modelagem-banco-de-dados/` — Scripts SQL e diagramas do banco de dados
 - `diagramas/` — Diagramas UML, arquitetura, DevOps e casos de uso
-- `DEPLOY.MD` — Guia de deploy detalhado usando Coolify em VPS
+- `DEPLOY.MD` — Guia de deploy detalhado usando Coolify em VPS [demonstacao](https://www.youtube.com/watch?v=P8E9yaS3bn8)
 - `PUBLIC_API.md` — Documentação do endpoint público de campanhas
 - `praticas-IV/README.MD` — Documentação acadêmica e justificativas de arquitetura
 - `sistema-doacoes-completo/requisitos.md` — Requisitos detalhados do sistema
