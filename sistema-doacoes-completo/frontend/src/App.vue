@@ -136,6 +136,8 @@ onMounted(() => {
     })
 
     collapseEl.addEventListener('click', (e) => {
+      if (e.target.closest('.dropdown')) return
+
       const target = e.target.closest('.nav-link')
       if (target && collapseEl.classList.contains('show') && bsCollapseInstance) {
         bsCollapseInstance.hide()

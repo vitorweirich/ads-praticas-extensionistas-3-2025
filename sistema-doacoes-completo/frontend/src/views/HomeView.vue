@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/no-use-v-if-with-v-for -->
 <template>
-  <div class="home">
-    <div class="jumbotron bg-light p-5 rounded-3 mb-4">
+  <div class="home row gap-3">
+    <div class="jumbotron bg-light p-sm-5 rounded-3">
       <div class="container">
         <h1 class="display-4">Faça a diferença hoje</h1>
         <p class="lead">
@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <div class="row mb-5">
+    <div class="row">
       <div class="col-md-4 mb-4">
         <div class="card h-100 text-center">
           <div class="card-body">
