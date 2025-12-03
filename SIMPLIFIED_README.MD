@@ -42,3 +42,4 @@ Este repositório contém o **Sistema Web de Doações**, desenvolvido para apoi
 
 - [Repositório GitHub](https://github.com/vitorweirich/ads-praticas-extensionistas-3-2025)
 - Documentações acadêmicas: [Praticas III](README.MD) e [Praticas IV](praticas-IV/README.MD)
+- Demo pública (aplicação frontend): `https://doacoes.vitorweirich.com/`

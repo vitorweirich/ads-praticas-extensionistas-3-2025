@@ -22,6 +22,10 @@ Com os requisitos básicos de:
 
 [ads-praticas-extensionistas-3-2025](https://github.com/vitorweirich/ads-praticas-extensionistas-3-2025)
 
+### Link do projeto
+
+Demo pública (aplicação frontend): `https://doacoes.vitorweirich.com/`
+
 ### Diagramas
 
 #### Entidade Relacionamento
@@ -87,6 +91,7 @@ Para mais detalhes veja o README.md no caminho `./sistema-doacoes-completo/READM
 
 - Frontend: `./sistema-doacoes-completo/frontend`
 - Backend: `./sistema-doacoes-completo/backend`
+- Demo (aplicação frontend): `https://doacoes.vitorweirich.com/`
 
 ## Práticas Extensionistas IV
 

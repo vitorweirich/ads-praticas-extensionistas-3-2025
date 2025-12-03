@@ -11,6 +11,9 @@
 
 Repositório GitHub: https://github.com/vitorweirich/ads-praticas-extensionistas-3-2025
 
+> Link do projeto
+> Demo pública (aplicação frontend): `https://doacoes.vitorweirich.com/`
+
 ## 3. Contexto do Sistema
 
 O projeto é um sistema web para gerenciamento e divulgação de campanhas de doações, permitindo:

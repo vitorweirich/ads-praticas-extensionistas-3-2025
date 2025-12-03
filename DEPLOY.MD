@@ -21,6 +21,8 @@
 - **Uploads:** Volume dedicado para arquivos enviados
 - **Proxy reverso:** Nginx ou Traefik, gerenciado pelo Coolify
 
+- Demo pública (aplicação frontend): `https://doacoes.vitorweirich.com/`
+
 ## 3. Passos para Deploy
 
 ### 3.1. Instalar Coolify

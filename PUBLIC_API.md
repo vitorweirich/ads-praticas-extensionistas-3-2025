@@ -1,12 +1,12 @@
 # API Pública de Campanhas
 
-Este documento descreve o endpoint público `/api/campanhas/publicas`, que pode ser utilizado para integrar e exibir campanhas principais em sistemas externos, como portais, sites institucionais ou aplicativos de terceiros.
+Este documento descreve o endpoint público `https://doacoes-api.vitorweirich.com/api/campanhas/publicas`, que pode ser utilizado para integrar e exibir campanhas principais em sistemas externos, como portais, sites institucionais ou aplicativos de terceiros.
 
 > **Disclaimer:** Apesar do sistema completo ser construído sobre APIs REST, **não é recomendado o uso dos demais endpoints** para integrações externas, pois eles exigem autenticação e são voltados para o funcionamento interno do sistema de doações.
 
 ## Endpoint: Listar Campanhas Públicas
 
-- **URL:** `/api/campanhas/publicas`
+- **URL:** `https://doacoes-api.vitorweirich.com/api/campanhas/publicas`
 - **Método:** `GET`
 - **Autenticação:** Não requer autenticação
 - **Descrição:** Retorna uma lista das campanhas públicas ativas, permitindo que sistemas externos exibam informações das principais campanhas.
