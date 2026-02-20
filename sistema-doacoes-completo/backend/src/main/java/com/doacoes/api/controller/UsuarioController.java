@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.validation.Valid;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -17,12 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.doacoes.api.exceptions.MessageFeedbackException;
 import com.doacoes.api.model.Usuario;
 import com.doacoes.api.payload.form.AlterarUsuarioForm;
 import com.doacoes.api.payload.response.MessageResponse;
 import com.doacoes.api.repository.UsuarioRepository;
 import com.doacoes.api.security.services.UserDetailsImpl;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -36,7 +37,7 @@ public class UsuarioController {
 
 	@GetMapping
 	@PreAuthorize("hasRole('ADMINISTRADOR')")
-	public ResponseEntity<?> listarUsuarios() {
+	public ResponseEntity<List<Usuario>> listarUsuarios() {
 		List<Usuario> allUsers = usuarioRepository.findAll();
 		
 		return ResponseEntity.ok(allUsers);
@@ -44,15 +45,16 @@ public class UsuarioController {
 	
 	@GetMapping("/atual")
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> buscarUsuarioAtual(Authentication authentication) {
+	public ResponseEntity<Usuario> buscarUsuarioAtual(Authentication authentication) {
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 	    Long userId = userDetails.getId();
-		return ResponseEntity.ok(usuarioRepository.findById(userId).orElseThrow());
+		return ResponseEntity.ok(usuarioRepository.findById(userId)
+				.orElseThrow(() -> new MessageFeedbackException("Erro: Usuário não encontrado!", HttpStatus.NOT_FOUND)));
 	}
 	
 	@PutMapping("/{id}")
 	@PreAuthorize("hasRole('ADMINISTRADOR') or @userSecurity.isCurrentUser(#id)")
-	public ResponseEntity<?> atualizarUsuario(@PathVariable Long id, @Valid @RequestBody AlterarUsuarioForm usuarioAtualizado) {
+	public ResponseEntity<Usuario> atualizarUsuario(@PathVariable Long id, @Valid @RequestBody AlterarUsuarioForm usuarioAtualizado) {
 	    Optional<Usuario> usuarioData = usuarioRepository.findById(id);
 	    
 	    if (usuarioData.isPresent()) {
@@ -64,15 +66,13 @@ public class UsuarioController {
 	        
 	        return ResponseEntity.ok(usuarioRepository.save(usuario));
 	    } else {
-	        return ResponseEntity
-	                .badRequest()
-	                .body(new MessageResponse("Erro: Usuário não encontrado!"));
+	    	throw new MessageFeedbackException("Erro: Usuário não encontrado!", HttpStatus.NOT_FOUND);
 	    }
 	}
 
 	@PutMapping("/{id}/senha")
 	@PreAuthorize("hasRole('ADMINISTRADOR') or @userSecurity.isCurrentUser(#id)")
-	public ResponseEntity<?> alterarSenha(@PathVariable Long id, @Valid @RequestBody Map<String, String> senhas) {
+	public ResponseEntity<MessageResponse> alterarSenha(@PathVariable Long id, @Valid @RequestBody Map<String, String> senhas) {
 	    Optional<Usuario> usuarioData = usuarioRepository.findById(id);
 	    
 	    if (usuarioData.isPresent()) {

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -22,10 +23,18 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body(new ErrorResponse("INTERNAL_ERROR", "Erro interno do servidor"));
 	}
-
+	
+	@ExceptionHandler(MessageFeedbackException.class)
+	public ResponseEntity<ErrorResponse> handleAllExceptions(MessageFeedbackException ex) {
+		ErrorResponse exceptionResponse = new ErrorResponse(ex.getStatus().getReasonPhrase(), ex.getMessage());
+		
+		return ResponseEntity.status(ex.getStatus())
+				.body(exceptionResponse);
+	}
+	
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(
-			MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+			MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
 		final List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
 		List<String> errors = new ArrayList<>();

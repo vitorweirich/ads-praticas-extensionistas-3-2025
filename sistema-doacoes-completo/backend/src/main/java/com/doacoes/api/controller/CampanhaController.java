@@ -1,11 +1,17 @@
 package com.doacoes.api.controller;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
-import javax.transaction.Transactional;
-import javax.validation.Valid;
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -20,19 +26,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.stream.Stream;
-import java.util.regex.Pattern;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import com.doacoes.api.exceptions.MessageFeedbackException;
 import com.doacoes.api.model.Campanha;
 import com.doacoes.api.payload.response.MessageResponse;
 import com.doacoes.api.repository.CampanhaRepository;
@@ -41,6 +40,8 @@ import com.doacoes.api.repository.TransparenciaRepository;
 import com.doacoes.api.repository.UsuarioRepository;
 import com.doacoes.api.security.services.UserDetailsImpl;
 
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -70,21 +71,19 @@ public class CampanhaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> obterCampanha(@PathVariable Long id) {
+    public ResponseEntity<Campanha> obterCampanha(@PathVariable Long id) {
         Optional<Campanha> campanha = campanhaRepository.findById(id);
         if (campanha.isPresent()) {
             return ResponseEntity.ok(campanha.get());
         } else {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro: Campanha não encontrada!"));
+        	throw new MessageFeedbackException("Erro: Campanha não encontrada!", HttpStatus.NOT_FOUND);
         }
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     // TODO: Criar exception handler para o @Valid (geral)
-    public ResponseEntity<?> criarCampanha(@Valid @RequestBody Campanha campanha) {
+    public ResponseEntity<Campanha> criarCampanha(@Valid @RequestBody Campanha campanha) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             UserDetailsImpl admUser = (UserDetailsImpl) authentication.getPrincipal();
@@ -92,16 +91,14 @@ public class CampanhaController {
             Campanha novaCampanha = campanhaRepository.save(campanha);
             return ResponseEntity.ok(novaCampanha);
         } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro ao criar campanha: " + e.getMessage()));
+        	throw new MessageFeedbackException("Erro ao criar campanha: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // Suporta multipart: campo 'campanha' com JSON e 'imagem' opcional com arquivo
     @PostMapping(consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> criarCampanhaMultipart(@Valid @RequestPart("campanha") Campanha campanha,
+    public ResponseEntity<Campanha> criarCampanhaMultipart(@Valid @RequestPart("campanha") Campanha campanha,
             @RequestPart(value = "imagem", required = false) MultipartFile imagemFile) {
         try {
             if (imagemFile != null && !imagemFile.isEmpty()) {
@@ -116,15 +113,13 @@ public class CampanhaController {
             Campanha novaCampanha = campanhaRepository.save(campanha);
             return ResponseEntity.ok(novaCampanha);
         } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro ao criar campanha (multipart): " + e.getMessage()));
+        	throw new MessageFeedbackException("Erro ao criar campanha (multipart): " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> atualizarCampanha(@PathVariable Long id, @Valid @RequestBody Campanha campanhaAtualizada) {
+    public ResponseEntity<Campanha> atualizarCampanha(@PathVariable Long id, @Valid @RequestBody Campanha campanhaAtualizada) {
         Optional<Campanha> campanhaData = campanhaRepository.findById(id);
         
         if (campanhaData.isPresent()) {
@@ -140,24 +135,20 @@ public class CampanhaController {
             
             return ResponseEntity.ok(campanhaRepository.save(campanha));
         } else {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro: Campanha não encontrada!"));
+        	throw new MessageFeedbackException("Erro: Campanha não encontrada!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // Suporta multipart update
     @PutMapping(path = "/{id}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> atualizarCampanhaMultipart(@PathVariable Long id,
+    public ResponseEntity<Campanha> atualizarCampanhaMultipart(@PathVariable Long id,
             @RequestPart("campanha") Campanha campanhaAtualizada,
             @RequestPart(value = "imagem", required = false) MultipartFile imagemFile) {
         try {
             Optional<Campanha> campanhaData = campanhaRepository.findById(id);
             if (!campanhaData.isPresent()) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Erro: Campanha não encontrada!"));
+            	throw new MessageFeedbackException("Erro: Campanha não encontrada!", HttpStatus.NOT_FOUND);
             }
 
             Campanha campanha = campanhaData.get();
@@ -180,16 +171,14 @@ public class CampanhaController {
 
             return ResponseEntity.ok(campanhaRepository.save(campanha));
         } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro ao atualizar campanha (multipart): " + e.getMessage()));
+        	throw new MessageFeedbackException("Erro ao atualizar campanha (multipart): " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @Transactional
-    public ResponseEntity<?> excluirCampanha(@PathVariable Long id) {
+    public ResponseEntity<MessageResponse> excluirCampanha(@PathVariable Long id) {
         try {
             // Remove uploaded image files related to this campanha.
             try {

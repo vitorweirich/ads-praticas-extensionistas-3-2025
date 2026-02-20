@@ -2,8 +2,7 @@ package com.doacoes.api.controller;
 
 import java.util.List;
 
-import javax.validation.Valid;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +19,7 @@ import com.doacoes.api.model.MensagemContato;
 import com.doacoes.api.payload.response.MessageResponse;
 import com.doacoes.api.repository.MensagemContatoRepository;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,11 +30,11 @@ public class ContatoController {
     private final MensagemContatoRepository repo;
 
     @PostMapping("/enviar")
-    public ResponseEntity<?> enviarMensagem(@Valid @RequestBody MensagemContato mensagem) {
+    public ResponseEntity<MensagemContato> enviarMensagem(@Valid @RequestBody MensagemContato mensagem) {
         // basic validation
         if ((mensagem.getTitulo() == null || mensagem.getTitulo().isBlank()) &&
                 (mensagem.getDescricao() == null || mensagem.getDescricao().isBlank())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Título ou descrição é obrigatório"));
+        	throw new MessageFeedbackException("Título ou descrição é obrigatório", HttpStatus.BAD_REQUEST);
         }
 
         MensagemContato saved = repo.save(mensagem);
@@ -57,28 +57,28 @@ public class ContatoController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> obter(@PathVariable Long id) {
+    public ResponseEntity<MensagemContato> obter(@PathVariable Long id) {
         return repo.findById(id).map(ResponseEntity::ok)
-        		.orElseThrow(() -> new MessageFeedbackException("Mensagem não encontrada"));
+        		.orElseThrow(() -> new MessageFeedbackException("Mensagem não encontrada", HttpStatus.NOT_FOUND));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody MensagemContato m) {
+    public ResponseEntity<MensagemContato> atualizar(@PathVariable Long id, @RequestBody MensagemContato m) {
         return repo.findById(id).map(existing -> {
             existing.setTitulo(m.getTitulo());
             existing.setDescricao(m.getDescricao());
             existing.setEmail(m.getEmail());
             repo.save(existing);
             return ResponseEntity.ok(existing);
-        }).orElseThrow(() -> new MessageFeedbackException("Mensagem não encontrada"));
+        }).orElseThrow(() -> new MessageFeedbackException("Mensagem não encontrada", HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> deletar(@PathVariable Long id) {
+    public ResponseEntity<MessageResponse> deletar(@PathVariable Long id) {
         if (!repo.existsById(id)) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Mensagem não encontrada"));
+            throw new MessageFeedbackException("Mensagem não encontrada", HttpStatus.NOT_FOUND);
         }
         repo.deleteById(id);
         return ResponseEntity.ok(new MessageResponse("Mensagem removida"));

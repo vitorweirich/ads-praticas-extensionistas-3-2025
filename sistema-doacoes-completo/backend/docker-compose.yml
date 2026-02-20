@@ -2,8 +2,7 @@ version: "3.8"
 
 services:
   app:
-    build:
-      context: .
+    image: registry.vitorweirich.com/praticas-extensionistas-doacoes-backend:latest
     expose:
       - "8080"
     ports:
@@ -17,7 +16,7 @@ services:
       DB_NAME: doacoesdb
       DB_USERNAME: postgres
       DB_PASSWORD: 12345678
-      JWT_SECRET: doacoesSecretKey2025SystemSecurityTokenJWT
+      JWT_SECRET: chave-super-secreta-de-64-bytes-exatamente-para-HS512!!!1234567890
       JWT_EXPIRATION: 86400000
       MAX_FILE_SIZE: 10MB
       MAX_REQUEST_SIZE: 10MB

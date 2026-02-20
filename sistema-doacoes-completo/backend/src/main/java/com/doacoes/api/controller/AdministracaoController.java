@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.validation.Valid;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +26,7 @@ import com.doacoes.api.repository.CampanhaRepository;
 import com.doacoes.api.repository.DoacaoRepository;
 import com.doacoes.api.repository.UsuarioRepository;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -42,7 +41,7 @@ public class AdministracaoController {
 	
 	@GetMapping("/estatisticas")
 	@PreAuthorize("hasRole('ADMINISTRADOR')")
-	public ResponseEntity<?> getEstatisticas() {
+	public ResponseEntity<Map<String, Object>> getEstatisticas() {
 	    Map<String, Object> estatisticas = new HashMap<>();
 	    
 	    long campanhasAtivas = campanhaRepository.countByStatus(Campanha.StatusCampanha.ATIVA);
@@ -70,7 +69,7 @@ public class AdministracaoController {
 	
 	@PostMapping("/auth/cadastro-admin")
 	@PreAuthorize("hasRole('ADMINISTRADOR')")
-	public ResponseEntity<?> cadastrarAdmin(@Valid @RequestBody SignupRequest signUpRequest) {
+	public ResponseEntity<MessageResponse> cadastrarAdmin(@Valid @RequestBody SignupRequest signUpRequest) {
 	    if (usuarioRepository.existsByEmail(signUpRequest.getEmail())) {
 	        return ResponseEntity
 	                .badRequest()
@@ -93,7 +92,7 @@ public class AdministracaoController {
 	
 	@PutMapping("/usuarios/{id}/status")
 	@PreAuthorize("hasRole('ADMINISTRADOR')")
-	public ResponseEntity<?> alterarStatusUsuario(@PathVariable Long id, @RequestBody Map<String, Boolean> status) {
+	public ResponseEntity<MessageResponse> alterarStatusUsuario(@PathVariable Long id, @RequestBody Map<String, Boolean> status) {
 	    Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
 	    
 	    if (usuarioOpt.isPresent()) {

@@ -1,0 +1,4 @@
+| user              | password
+| joao@email.com    | 123456
+| maria@email.com   | 123456
+| carlos@email.com  | 123456

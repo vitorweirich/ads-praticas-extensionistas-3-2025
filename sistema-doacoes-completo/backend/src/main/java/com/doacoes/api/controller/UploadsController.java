@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.doacoes.api.payload.response.MessageResponse;
+import com.doacoes.api.exceptions.MessageFeedbackException;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -26,12 +27,12 @@ public class UploadsController {
     private final Path uploadsRoot = Paths.get("uploads").toAbsolutePath().normalize();
 
     @GetMapping("/{filename:.+}")
-    public ResponseEntity<?> serveFile(@PathVariable String filename) {
+    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
         try {
             Path filePath = uploadsRoot.resolve(filename).normalize();
 
             if (!filePath.startsWith(uploadsRoot)) {
-                return ResponseEntity.badRequest().body(new MessageResponse("Arquivo inválido."));
+            	throw new MessageFeedbackException("Arquivo inválido.", HttpStatus.BAD_REQUEST);
             }
 
             if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
@@ -59,7 +60,7 @@ public class UploadsController {
                     .body(resource);
 
         } catch (MalformedURLException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Erro ao recuperar arquivo: " + e.getMessage()));
+        	throw new MessageFeedbackException("Erro ao recuperar arquivo: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

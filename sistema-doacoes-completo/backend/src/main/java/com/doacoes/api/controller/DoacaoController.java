@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.validation.Valid;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.doacoes.api.exceptions.MessageFeedbackException;
 import com.doacoes.api.model.Campanha;
 import com.doacoes.api.model.Doacao;
 import com.doacoes.api.model.Usuario;
@@ -28,6 +28,7 @@ import com.doacoes.api.repository.DoacaoRepository;
 import com.doacoes.api.repository.UsuarioRepository;
 import com.doacoes.api.security.services.UserDetailsImpl;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -41,29 +42,23 @@ public class DoacaoController {
     private final UsuarioRepository usuarioRepository;
 
     @PostMapping
-    public ResponseEntity<?> registrarDoacao(@Valid @RequestBody Doacao doacao) {
+    public ResponseEntity<Doacao> registrarDoacao(@Valid @RequestBody Doacao doacao) {
         try {
             Optional<Campanha> campanhaOpt = campanhaRepository.findById(doacao.getCampanha().getId());
             if (!campanhaOpt.isPresent()) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Erro: Campanha não encontrada!"));
+            	throw new MessageFeedbackException("Erro: Campanha não encontrada!", HttpStatus.NOT_FOUND);
             }
             
             Campanha campanha = campanhaOpt.get();
             
             if (campanha.getStatus() != Campanha.StatusCampanha.ATIVA) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Erro: Campanha não está ativa!"));
+            	throw new MessageFeedbackException("Erro: Campanha não está ativa!", HttpStatus.BAD_REQUEST);
             }
             
             if (!doacao.isAnonimo() && doacao.getDoador() != null) {
                 Optional<Usuario> doadorOpt = usuarioRepository.findById(doacao.getDoador().getId());
                 if (!doadorOpt.isPresent()) {
-                    return ResponseEntity
-                            .badRequest()
-                            .body(new MessageResponse("Erro: Doador não encontrado!"));
+                	throw new MessageFeedbackException("Erro: Doador não encontrado!", HttpStatus.NOT_FOUND);
                 }
                 doacao.setDoador(doadorOpt.get());
             }
@@ -79,19 +74,15 @@ public class DoacaoController {
             
             return ResponseEntity.ok(novaDoacao);
         } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro ao registrar doação: " + e.getMessage()));
+            throw new MessageFeedbackException("Erro ao registrar doação: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/usuario/{id}")
-    public ResponseEntity<?> listarDoacoesPorUsuario(@PathVariable Long id) {
+    public ResponseEntity<List<Doacao>> listarDoacoesPorUsuario(@PathVariable Long id) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
         if (!usuarioOpt.isPresent()) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro: Usuário não encontrado!"));
+        	throw new MessageFeedbackException("Erro: Usuário não encontrado!", HttpStatus.NOT_FOUND);
         }
         
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -100,9 +91,8 @@ public class DoacaoController {
             
             if (!userDetails.getId().equals(id) && 
                 !userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"))) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Erro: Não autorizado!"));
+            	
+            	throw new MessageFeedbackException("Erro: Não autorizado!", HttpStatus.UNAUTHORIZED);
             }
         }
         
@@ -111,12 +101,10 @@ public class DoacaoController {
     }
 
     @GetMapping("/campanha/{id}")
-    public ResponseEntity<?> listarDoacoesPorCampanha(@PathVariable Long id) {
+    public ResponseEntity<List<Doacao>> listarDoacoesPorCampanha(@PathVariable Long id) {
         Optional<Campanha> campanhaOpt = campanhaRepository.findById(id);
         if (!campanhaOpt.isPresent()) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro: Campanha não encontrada!"));
+        	throw new MessageFeedbackException("Erro: Campanha não encontrada!", HttpStatus.NOT_FOUND);
         }
         
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -173,7 +161,7 @@ public class DoacaoController {
     
     @GetMapping("/usuario/atual")
 	@PreAuthorize("hasRole('DOADOR') or hasRole('ADMINISTRADOR')")
-	public ResponseEntity<?> listarDoacoesUsuarioAtual(Authentication authentication) {
+	public ResponseEntity<List<Doacao>> listarDoacoesUsuarioAtual(Authentication authentication) {
 	    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 	    Long userId = userDetails.getId();
 	    
@@ -183,7 +171,7 @@ public class DoacaoController {
 
     @PutMapping("/{id}/confirmar")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> confirmarDoacao(@PathVariable Long id) {
+    public ResponseEntity<MessageResponse> confirmarDoacao(@PathVariable Long id) {
         Optional<Doacao> doacaoOpt = doacaoRepository.findById(id);
         if (!doacaoOpt.isPresent()) {
             return ResponseEntity
@@ -211,7 +199,7 @@ public class DoacaoController {
 
     @PutMapping("/{id}/cancelar")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> cancelarDoacao(@PathVariable Long id) {
+    public ResponseEntity<MessageResponse> cancelarDoacao(@PathVariable Long id) {
         Optional<Doacao> doacaoOpt = doacaoRepository.findById(id);
         if (!doacaoOpt.isPresent()) {
             return ResponseEntity

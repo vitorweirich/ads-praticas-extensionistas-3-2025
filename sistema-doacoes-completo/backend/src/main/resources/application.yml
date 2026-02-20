@@ -1,4 +1,12 @@
 spring:
+  aot:
+    enabled: true
+    remove-unused-autoconfig: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+  main:
+    allow-bean-definition-overriding: true
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/doacoesdb}
     username: ${DB_USERNAME:postgres}
@@ -7,12 +15,19 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
+      order_by:
+        default_null_ordering: last
     show-sql: ${SHOW_SQL:true}
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    flywaybaseline-on-migrate: true
 
   servlet:
     multipart:
@@ -22,7 +37,7 @@ spring:
 app:
   base-url: ${APP_BASE_URL:http://localhost:8080}
   jwt:
-    secret: ${JWT_SECRET:doacoesSecretKey2025SystemSecurityTokenJWT}
+    secret: ${JWT_SECRET:chave-super-secreta-de-64-bytes-exatamente-para-HS512!!!1234567890}
     expiration: ${JWT_EXPIRATION:86400000}
 
 server:

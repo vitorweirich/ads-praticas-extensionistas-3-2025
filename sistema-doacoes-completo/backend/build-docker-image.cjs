@@ -23,7 +23,7 @@ function getVersionFromPom(pomPath) {
   // Mapa de propriedades
   const props = {};
   const propsBlockMatch = noComments.match(
-    /<properties>([\s\S]*?)<\/properties>/
+    /<properties>([\s\S]*?)<\/properties>/,
   );
   if (propsBlockMatch) {
     const block = propsBlockMatch[1];
@@ -62,7 +62,7 @@ function getVersionFromPom(pomPath) {
         __dirname,
         "target",
         "maven-archiver",
-        "pom.properties"
+        "pom.properties",
       );
       const content = fs.readFileSync(propsPath, "utf8");
       const line = content.split(/\r?\n/).find((l) => l.startsWith("version="));
@@ -103,10 +103,10 @@ console.log(`📦 Buildando Docker image: ${TAG} com MODE=${MODE}...`);
 
 try {
   execSync(
-    `docker build --build-arg MODE=${MODE} -t ${TAG} -t ${IMAGE_NAME}:latest .`,
+    `docker build -f Dockerfile.native --build-arg MODE=${MODE} -t ${TAG} -t ${IMAGE_NAME}:latest .`,
     {
       stdio: "inherit",
-    }
+    },
   );
   console.log(`✅ Imagem criada e tags ['${TAG}', 'latest'] adicionadas.`);
 
@@ -122,7 +122,7 @@ try {
     }
   } else {
     console.log(
-      "⏭️  Push skipped. Run this script with --push to push images after build."
+      "⏭️  Push skipped. Run this script with --push to push images after build.",
     );
   }
 } catch (err) {

@@ -53,30 +53,30 @@ public class WebSecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .cors().and().csrf().disable()
-            .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+    	http
+	        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+	        .csrf(csrf -> csrf.disable())
+	        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-            		.antMatchers("/uploads/**").permitAll()
-                    .antMatchers("/api/contato/emails", "/api/contato/enviar").permitAll()
-                    .antMatchers("/api/auth/**").permitAll()
-                    .antMatchers("/api/campanhas/publicas/**").permitAll()
-                    .antMatchers("/api/campanhas/{id}").permitAll()
-                    .antMatchers("/api/doacoes/campanha/{id}").permitAll()
-                    .antMatchers("/api/transparencia/publica/**").permitAll()
+            		.requestMatchers("/uploads/**").permitAll()
+                    .requestMatchers("/api/contato/emails", "/api/contato/enviar").permitAll()
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/campanhas/publicas/**").permitAll()
+                    .requestMatchers("/api/campanhas/{id}").permitAll()
+                    .requestMatchers("/api/doacoes/campanha/{id}").permitAll()
+                    .requestMatchers("/api/transparencia/publica/**").permitAll()
                     .anyRequest().authenticated()
                 );
 
         http.authenticationProvider(authenticationProvider());
+        http.exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(unauthorizedHandler));
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

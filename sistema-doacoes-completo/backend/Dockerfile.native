@@ -1,0 +1,28 @@
+FROM ghcr.io/graalvm/native-image-community:17 as build
+WORKDIR /app
+
+# Copia apenas os arquivos que raramente mudam
+COPY mvnw pom.xml ./
+COPY .mvn .mvn
+
+# Baixa as dependências e faz cache
+RUN ./mvnw dependency:go-offline
+
+# Agora copia o restante do projeto
+COPY . .
+
+# Compila a imagem nativa
+RUN ./mvnw -Pnative native:compile
+
+# Imagem final
+FROM alpine
+COPY --from=build /app/target/api /api
+RUN apk add --no-cache libc6-compat curl
+RUN chmod +x /api
+EXPOSE 8080
+
+# Create uploads directory and expose as volume
+RUN mkdir -p /app/uploads
+VOLUME ["/app/uploads"]
+
+CMD ["./api"]

@@ -3,8 +3,7 @@ package com.doacoes.api.controller;
 import java.util.List;
 import java.util.Optional;
 
-import javax.validation.Valid;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.doacoes.api.exceptions.MessageFeedbackException;
 import com.doacoes.api.model.Campanha;
 import com.doacoes.api.model.Transparencia;
 import com.doacoes.api.model.Usuario;
@@ -28,6 +28,7 @@ import com.doacoes.api.repository.TransparenciaRepository;
 import com.doacoes.api.repository.UsuarioRepository;
 import com.doacoes.api.security.services.UserDetailsImpl;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -47,12 +48,10 @@ public class TransparenciaController {
     }
 
     @GetMapping("/campanha/{id}")
-    public ResponseEntity<?> listarAlocacoesPorCampanha(@PathVariable Long id) {
+    public ResponseEntity<List<Transparencia>> listarAlocacoesPorCampanha(@PathVariable Long id) {
         Optional<Campanha> campanhaOpt = campanhaRepository.findById(id);
         if (!campanhaOpt.isPresent()) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro: Campanha não encontrada!"));
+        	throw new MessageFeedbackException("Erro: Campanha não encontrada!", HttpStatus.NOT_FOUND);
         }
         
         List<Transparencia> alocacoes = transparenciaRepository.findByCampanhaId(id);
@@ -61,13 +60,11 @@ public class TransparenciaController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> registrarAlocacao(@Valid @RequestBody Transparencia alocacao) {
+    public ResponseEntity<Transparencia> registrarAlocacao(@Valid @RequestBody Transparencia alocacao) {
         try {
             Optional<Campanha> campanhaOpt = campanhaRepository.findById(alocacao.getCampanha().getId());
             if (!campanhaOpt.isPresent()) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Erro: Campanha não encontrada!"));
+            	throw new MessageFeedbackException("Erro: Campanha não encontrada!", HttpStatus.NOT_FOUND);
             }
             
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -75,9 +72,7 @@ public class TransparenciaController {
             
             Optional<Usuario> responsavelOpt = usuarioRepository.findById(userDetails.getId());
             if (!responsavelOpt.isPresent()) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(new MessageResponse("Erro: Responsável não encontrado!"));
+            	throw new MessageFeedbackException("Erro: Responsável não encontrado!", HttpStatus.NOT_FOUND);
             }
             
             alocacao.setCampanha(campanhaOpt.get());
@@ -87,15 +82,13 @@ public class TransparenciaController {
             
             return ResponseEntity.ok(novaAlocacao);
         } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro ao registrar alocação: " + e.getMessage()));
+        	throw new MessageFeedbackException("Erro ao registrar alocação: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> atualizarAlocacao(@PathVariable Long id, @Valid @RequestBody Transparencia alocacaoAtualizada) {
+    public ResponseEntity<Transparencia> atualizarAlocacao(@PathVariable Long id, @Valid @RequestBody Transparencia alocacaoAtualizada) {
         Optional<Transparencia> alocacaoOpt = transparenciaRepository.findById(id);
         
         if (alocacaoOpt.isPresent()) {
@@ -104,9 +97,7 @@ public class TransparenciaController {
             if (alocacaoAtualizada.getCampanha() != null && alocacaoAtualizada.getCampanha().getId() != null) {
                 Optional<Campanha> campanhaOpt = campanhaRepository.findById(alocacaoAtualizada.getCampanha().getId());
                 if (!campanhaOpt.isPresent()) {
-                    return ResponseEntity
-                            .badRequest()
-                            .body(new MessageResponse("Erro: Campanha não encontrada!"));
+                	throw new MessageFeedbackException("Erro: Campanha não encontrada!", HttpStatus.NOT_FOUND);
                 }
                 alocacao.setCampanha(campanhaOpt.get());
             }
@@ -118,15 +109,13 @@ public class TransparenciaController {
             
             return ResponseEntity.ok(transparenciaRepository.save(alocacao));
         } else {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro: Alocação não encontrada!"));
+        	throw new MessageFeedbackException("Erro: Alocação não encontrada!", HttpStatus.NOT_FOUND);
         }
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<?> excluirAlocacao(@PathVariable Long id) {
+    public ResponseEntity<MessageResponse> excluirAlocacao(@PathVariable Long id) {
         try {
             transparenciaRepository.deleteById(id);
             return ResponseEntity.ok(new MessageResponse("Alocação excluída com sucesso!"));
@@ -138,14 +127,12 @@ public class TransparenciaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> obterAlocacao(@PathVariable Long id) {
+    public ResponseEntity<Transparencia> obterAlocacao(@PathVariable Long id) {
         Optional<Transparencia> alocacao = transparenciaRepository.findById(id);
         if (alocacao.isPresent()) {
             return ResponseEntity.ok(alocacao.get());
         } else {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Erro: Alocação não encontrada!"));
+        	throw new MessageFeedbackException("Erro: Alocação não encontrada!", HttpStatus.NOT_FOUND);
         }
     }
 }

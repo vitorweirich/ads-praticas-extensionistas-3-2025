@@ -1,0 +1,47 @@
+[
+    {
+        "titulo": "Apoio para Cirurgia de Criança com Cardiopatia",
+        "descricao": "Campanha destinada a arrecadar fundos para custear a cirurgia cardíaca de uma criança de 4 anos, incluindo exames, internação e pós-operatório.",
+        "imagemCapa": "https://meuservidor.com/imagens/campanha-saude-001.jpg",
+        "metaFinanceira": 35000.00,
+        "dataTermino": "2026-03-15",
+        "categoria": "Saúde",
+        "beneficiarios": "Crianças com cardiopatia congênita"
+    },
+    {
+        "titulo": "Materiais Escolares para Comunidade Carente",
+        "descricao": "Arrecadação para compra de mochilas, cadernos e materiais básicos para 120 crianças em situação de vulnerabilidade.",
+        "imagemCapa": "https://meuservidor.com/imagens/campanha-educacao-001.jpg",
+        "metaFinanceira": 12000.00,
+        "dataTermino": "2026-02-20",
+        "categoria": "Educação",
+        "beneficiarios": "Crianças de baixa renda da comunidade Esperança"
+    },
+    {
+        "titulo": "Ajuda para Famílias Afetadas por Deslizamentos",
+        "descricao": "Campanha emergencial para fornecer alimentos, roupas e abrigo temporário às famílias atingidas pelos deslizamentos provocados pelas fortes chuvas.",
+        "imagemCapa": "https://meuservidor.com/imagens/campanha-emergencia-001.jpg",
+        "metaFinanceira": 50000.00,
+        "dataTermino": "2026-01-30",
+        "categoria": "Emergência",
+        "beneficiarios": "Famílias desabrigadas pelos deslizamentos"
+    },
+    {
+        "titulo": "Inclusão Digital para Jovens",
+        "descricao": "A campanha visa adquirir computadores e oferecer cursos de capacitação digital para jovens de baixa renda, promovendo acesso ao mercado de trabalho.",
+        "imagemCapa": "https://meuservidor.com/imagens/campanha-social-001.jpg",
+        "metaFinanceira": 18000.00,
+        "dataTermino": "2026-04-10",
+        "categoria": "Social",
+        "beneficiarios": "Jovens entre 15 e 22 anos em situação de vulnerabilidade"
+    },
+    {
+        "titulo": "Reflorestamento de Área Degradada",
+        "descricao": "Campanha para aquisição de mudas nativas e execução de projeto de reflorestamento em área degradada por queimadas.",
+        "imagemCapa": "https://meuservidor.com/imagens/campanha-ambiental-001.jpg",
+        "metaFinanceira": 22000.00,
+        "dataTermino": "2026-05-01",
+        "categoria": "Ambiental",
+        "beneficiarios": "Comunidades locais e fauna nativa"
+    }
+]
