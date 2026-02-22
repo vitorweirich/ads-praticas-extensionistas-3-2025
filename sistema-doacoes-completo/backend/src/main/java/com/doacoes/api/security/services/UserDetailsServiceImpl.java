@@ -25,4 +25,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return UserDetailsImpl.build(usuario);
     }
+
+	public Usuario findByEmail(String email) {
+		return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o email: " + email));
+	}
+
+	public void save(Usuario user) {
+		usuarioRepository.save(user);
+	}
 }

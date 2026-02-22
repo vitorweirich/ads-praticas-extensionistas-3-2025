@@ -4,13 +4,25 @@
       <div class="col-md-6">
         <div class="card shadow">
           <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Login</h4>
+            <h4 class="mb-0">Informe seu email para</h4>
           </div>
           <div class="card-body">
             <div v-if="error" class="alert alert-danger" role="alert">
               {{ error }}
             </div>
-            <form @submit.prevent="handleLogin">
+            <!-- Success message section -->
+            <div v-if="isRegistered" class="space-y-6 text-center">
+              <div class="rounded-md p-4">
+                <p class="text-base">
+                  Se sua conta existir enviaremos um e-mail de confirmação para
+                  <span class="font-semibold">{{ user.email }}</span
+                  >.<br />
+                  Por favor, verifique sua caixa de entrada e siga as instruções
+                  para alterar sua senha.
+                </p>
+              </div>
+            </div>
+            <form v-if="!isRegistered" @submit.prevent="handleForgotPassword">
               <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <input
@@ -20,17 +32,6 @@
                   v-model="user.email"
                   required
                   placeholder="Seu email"
-                />
-              </div>
-              <div class="mb-3">
-                <label for="senha" class="form-label">Senha</label>
-                <input
-                  type="password"
-                  class="form-control"
-                  id="senha"
-                  v-model="user.senha"
-                  required
-                  placeholder="Sua senha"
                 />
               </div>
               <div class="d-grid gap-2">
@@ -45,18 +46,14 @@
                     role="status"
                     aria-hidden="true"
                   ></span>
-                  {{ loading ? "Entrando..." : "Entrar" }}
+                  {{ loading ? "Carregando..." : "Recuperar Senha" }}
                 </button>
               </div>
             </form>
             <div class="mt-3 text-center">
               <p>
-                Não tem uma conta?
-                <router-link to="/cadastro">Cadastre-se</router-link>
-              </p>
-              <p>
-                Esqueci minha senha.
-                <router-link to="/esqueci-senha">Recuperar senha</router-link>
+                Já tem uma conta?
+                <router-link to="/login">Faça login</router-link>
               </p>
             </div>
           </div>
@@ -76,17 +73,18 @@ const router = useRouter();
 
 const user = reactive({ email: "", senha: "" });
 const loading = ref(false);
+const isRegistered = ref(false);
 const error = ref(null);
 
-const handleLogin = async () => {
+const handleForgotPassword = async () => {
   loading.value = true;
   error.value = null;
   try {
-    await store.dispatch("login", user);
-    router.push("/portal");
+    await store.dispatch("forgotPassword", user.email);
+    isRegistered.value = true;
   } catch (err) {
     console.error(err);
-    error.value = "Falha no login. Verifique suas credenciais.";
+    error.value = "Falha ao enviar solicitação de recuperação de senha.";
   } finally {
     loading.value = false;
   }

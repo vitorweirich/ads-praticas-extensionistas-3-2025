@@ -10,6 +10,8 @@ import NotFoundView from "../views/NotFoundView.vue";
 import CampanhaDetalheView from "../views/CampanhaDetalheView.vue";
 import AdministracaoCampanhaView from "../views/AdministracaoCampanhaView.vue";
 import ContatoView from "../views/ContatoView.vue";
+import ForgotPasswordView from "../views/ForgotPasswordView.vue";
+import ResetarSenhaView from "../views/ResetarSenhaView.vue";
 
 const routes = [
   {
@@ -26,6 +28,16 @@ const routes = [
     path: "/cadastro",
     name: "cadastro",
     component: CadastroView,
+  },
+  {
+    path: "/esqueci-senha",
+    name: "esqueci-senha",
+    component: ForgotPasswordView,
+  },
+  {
+    path: "/resetar-senha/:token",
+    name: "resetar-senha",
+    component: ResetarSenhaView,
   },
   {
     path: "/portal",

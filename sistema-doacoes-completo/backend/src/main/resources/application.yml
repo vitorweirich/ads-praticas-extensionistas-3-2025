@@ -7,6 +7,18 @@ spring:
       fail-on-unknown-properties: false
   main:
     allow-bean-definition-overriding: true
+  mail:
+    host: ${EMAIL_HOST:localhost}
+    port: ${EMAIL_PORT:1025}
+    username: ${EMAIL_USERNAME:teste@gmail.com}
+    password: ${EMAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${EMAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${EMAIL_SMTP_STARTTLS_ENABLE:false}
+            required: ${EMAIL_SMTP_STARTTLS_REQUIRED:false}
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/doacoesdb}
     username: ${DB_USERNAME:postgres}
@@ -39,6 +51,9 @@ app:
   jwt:
     secret: ${JWT_SECRET:chave-super-secreta-de-64-bytes-exatamente-para-HS512!!!1234567890}
     expiration: ${JWT_EXPIRATION:86400000}
+  reset-password:
+    base-url: ${RESET_PASSWORD_BASE_URL:http://localhost:3000/resetar-senha}
+    expiration-minutes: ${RESET_PASSWORD_EXPIRATION_MINUTES:30}
 
 server:
   port: ${SERVER_PORT:8080}

@@ -39,7 +39,7 @@ axios.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 axios.interceptors.response.use(
@@ -55,7 +55,7 @@ axios.interceptors.response.use(
       router.push("/login");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 const store = createStore({
@@ -164,6 +164,35 @@ const store = createStore({
         localStorage.removeItem("user");
         delete axios.defaults.headers.common["Authorization"];
         resolve();
+      });
+    },
+    forgotPassword(_, email) {
+      return new Promise((resolve, reject) => {
+        axios
+          .post(`${process.env.VUE_APP_API_BASE_URL}/api/auth/esqueci-senha`, {
+            email,
+          })
+          .then((resp) => {
+            resolve(resp);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+    resetPassword(_, body) {
+      return new Promise((resolve, reject) => {
+        axios
+          .post(
+            `${process.env.VUE_APP_API_BASE_URL}/api/auth/resetar-senha`,
+            body,
+          )
+          .then((resp) => {
+            resolve(resp);
+          })
+          .catch((err) => {
+            reject(err);
+          });
       });
     },
     fetchCampanhas({ commit }) {
