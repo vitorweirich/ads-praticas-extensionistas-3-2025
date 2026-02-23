@@ -168,10 +168,7 @@ Os arquivos estáticos serão gerados na pasta `dist/` e podem ser servidos por 
 
 Para facilitar os testes, o sistema já vem com alguns usuários pré-cadastrados:
 
-// TODO: Adicionar flyway e seed de usuarios padrão?
-
 1. **Administrador**
-
    - Email: admin@example.com
    - Senha: admin123
 

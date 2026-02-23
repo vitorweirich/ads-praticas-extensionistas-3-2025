@@ -180,7 +180,6 @@ function logout() {
 function toggleNavbar() {
   const collapseEl = document.getElementById('navbarNav')
   if (!collapseEl) return
-  // Toggle using the Collapse instance
   if (collapseEl.classList.contains('show')) {
     bsCollapseInstance && bsCollapseInstance.hide()
   } else {

@@ -108,7 +108,6 @@ public class AuthController {
     
     @PostMapping("/esqueci-senha")
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        // Sempre retorna 200 OK por segurança, mesmo que o e-mail não exista
         try {
         	authService.generateTokenAndSendEmail(request);
         } catch (Exception ex) {

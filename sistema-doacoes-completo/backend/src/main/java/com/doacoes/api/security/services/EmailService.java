@@ -42,13 +42,12 @@ public class EmailService {
     public void sendHtmlEmailWithAttachment(String to, String subject, String htmlContent, File attachment) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
 
-        // true = multipart message
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         helper.setFrom(sendedFrom);
         helper.setTo(to);
         helper.setSubject(subject);
-        helper.setText(htmlContent, true); // true = HTML
+        helper.setText(htmlContent, true);
 
         if (attachment != null) {
             FileSystemResource file = new FileSystemResource(attachment);
@@ -61,7 +60,6 @@ public class EmailService {
     public void sendHtmlEmailFromTemplate(String to, String subject, String templateName, Map<String, Object> emailTemplateVariables) throws MessagingException, IOException {
         MimeMessage message = mailSender.createMimeMessage();
 
-        // true = multipart message
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         helper.setFrom(sendedFrom);

@@ -372,8 +372,6 @@ const progressoPercentual = computed(() => {
   return Math.min(Math.round(percentual), 100);
 });
 
-// ...existing code...
-
 const diasRestantes = computed(() => {
   if (!campanha.value.dataTermino) return "N/A";
   const hoje = new Date();
@@ -389,7 +387,7 @@ const carregarCampanha = async () => {
   error.value = null;
   try {
     const resp = await axios.get(
-      `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanhaId.value}`
+      `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanhaId.value}`,
     );
     campanha.value = resp.data;
   } catch (e) {
@@ -404,7 +402,7 @@ const carregarCampanha = async () => {
 const carregarDoacoesRecentes = async () => {
   try {
     const resp = await axios.get(
-      `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/campanha/${campanhaId.value}`
+      `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/campanha/${campanhaId.value}`,
     );
     doacoesRecentes.value = resp.data;
   } catch (e) {
@@ -426,22 +424,22 @@ const compartilhar = (rede) => {
   switch (rede) {
     case "facebook":
       shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-        url
+        url,
       )}`;
       break;
     case "twitter":
       shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        titulo
+        titulo,
       )}&url=${encodeURIComponent(url)}`;
       break;
     case "whatsapp":
       shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
-        titulo + " " + url
+        titulo + " " + url,
       )}`;
       break;
     case "email":
       shareUrl = `mailto:?subject=${encodeURIComponent(
-        titulo
+        titulo,
       )}&body=${encodeURIComponent("Confira esta campanha: " + url)}`;
       break;
   }
@@ -470,7 +468,7 @@ const fazerDoacao = async () => {
   try {
     await axios.post(
       `${process.env.VUE_APP_API_BASE_URL}/api/doacoes`,
-      doacaoObj
+      doacaoObj,
     );
     doacaoLoading.value = false;
     showDoacaoModal.value = false;
@@ -487,7 +485,7 @@ const fazerDoacao = async () => {
     console.error("Erro ao processar doação:", e);
     doacaoLoading.value = false;
     alert(
-      "Ocorreu um erro ao processar sua doação. Por favor, tente novamente."
+      "Ocorreu um erro ao processar sua doação. Por favor, tente novamente.",
     );
   }
 };

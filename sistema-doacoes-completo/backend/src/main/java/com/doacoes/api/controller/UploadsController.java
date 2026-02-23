@@ -48,7 +48,6 @@ public class UploadsController {
             try {
                 contentType = Files.probeContentType(filePath);
             } catch (Exception e) {
-                // ignore and fallback
             }
             if (contentType == null) {
                 contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;

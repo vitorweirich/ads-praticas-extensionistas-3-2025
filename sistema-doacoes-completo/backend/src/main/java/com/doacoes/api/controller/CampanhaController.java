@@ -95,7 +95,6 @@ public class CampanhaController {
         }
     }
 
-    // Suporta multipart: campo 'campanha' com JSON e 'imagem' opcional com arquivo
     @PostMapping(consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Campanha> criarCampanhaMultipart(@Valid @RequestPart("campanha") Campanha campanha,
@@ -139,7 +138,6 @@ public class CampanhaController {
         }
     }
 
-    // Suporta multipart update
     @PutMapping(path = "/{id}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Campanha> atualizarCampanhaMultipart(@PathVariable Long id,
@@ -180,11 +178,9 @@ public class CampanhaController {
     @Transactional
     public ResponseEntity<MessageResponse> excluirCampanha(@PathVariable Long id) {
         try {
-            // Remove uploaded image files related to this campanha.
             try {
                 Path uploadDir = Paths.get("uploads");
                 if (Files.exists(uploadDir) && Files.isDirectory(uploadDir)) {
-                    // Match filenames like <timestamp>_<campanhaId> or <timestamp>_<campanhaId>.<ext>
                     Pattern ptn = Pattern.compile(".*_" + id + "(\\..+)?$");
                     try (Stream<Path> stream = Files.list(uploadDir)) {
                         stream.filter(Files::isRegularFile)
@@ -193,14 +189,12 @@ public class CampanhaController {
                                   try {
                                       Files.deleteIfExists(p);
                                   } catch (Exception ex) {
-                                      // log and continue
                                       System.err.println("Erro ao deletar arquivo de upload: " + p + ", " + ex.getMessage());
                                   }
                               });
                     }
                 }
             } catch (Exception ex) {
-                // Non-fatal: continue with DB deletions but report
                 System.err.println("Erro ao limpar arquivos de upload da campanha " + id + ": " + ex.getMessage());
             }
 
@@ -222,7 +216,6 @@ public class CampanhaController {
     }
 
     private String storeImageAndGetUrl(MultipartFile imagemFile, Campanha campanha) throws Exception {
-        // Preserve original file extension when storing the file
         String originalName = imagemFile.getOriginalFilename();
         String extension = "";
         if (originalName != null) {

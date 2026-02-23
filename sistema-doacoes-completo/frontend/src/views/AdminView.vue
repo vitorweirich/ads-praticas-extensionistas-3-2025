@@ -1110,7 +1110,6 @@ const campanhaImagemFile = ref(null);
 const campanhaImagemFileName = ref("");
 const campanhaImagemPreview = ref("");
 
-// Keep track of any created object URL so we can revoke it later
 let _currentObjectUrl = null;
 
 const carregarDados = async () => {
@@ -1135,7 +1134,7 @@ const carregarMensagens = async () => {
   loadingMensagens.value = true;
   try {
     const resp = await axios.get(
-      `${process.env.VUE_APP_API_BASE_URL}/api/contato`
+      `${process.env.VUE_APP_API_BASE_URL}/api/contato`,
     );
     mensagens.value = resp.data;
   } catch (e) {
@@ -1154,7 +1153,7 @@ async function excluirMensagem(m) {
   if (confirm(`Excluir mensagem de ${m.email}?`)) {
     try {
       await axios.delete(
-        `${process.env.VUE_APP_API_BASE_URL}/api/contato/${m.id}`
+        `${process.env.VUE_APP_API_BASE_URL}/api/contato/${m.id}`,
       );
       await carregarMensagens();
       alert("Mensagem excluída com sucesso");
@@ -1168,7 +1167,7 @@ async function excluirMensagem(m) {
 const carregarEstatisticas = async () => {
   try {
     const resp = await axios.get(
-      `${process.env.VUE_APP_API_BASE_URL}/api/admin/estatisticas`
+      `${process.env.VUE_APP_API_BASE_URL}/api/admin/estatisticas`,
     );
     Object.assign(estatisticas, resp.data);
   } catch (e) {
@@ -1180,7 +1179,7 @@ const carregarCampanhas = async () => {
   loadingCampanhas.value = true;
   try {
     const resp = await axios.get(
-      `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`
+      `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`,
     );
     campanhas.value = resp.data;
   } catch (e) {
@@ -1195,7 +1194,7 @@ const carregarDoacoes = async () => {
   loadingDoacoes.value = true;
   try {
     const resp = await axios.get(
-      `${process.env.VUE_APP_API_BASE_URL}/api/admin/doacoes`
+      `${process.env.VUE_APP_API_BASE_URL}/api/admin/doacoes`,
     );
     doacoes.value = resp.data;
   } catch (e) {
@@ -1210,7 +1209,7 @@ const carregarAlocacoes = async () => {
   loadingAlocacoes.value = true;
   try {
     const resp = await axios.get(
-      `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/publica`
+      `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/publica`,
     );
     alocacoes.value = resp.data;
   } catch (e) {
@@ -1225,7 +1224,7 @@ const carregarUsuarios = async () => {
   loadingUsuarios.value = true;
   try {
     const resp = await axios.get(
-      `${process.env.VUE_APP_API_BASE_URL}/api/usuarios`
+      `${process.env.VUE_APP_API_BASE_URL}/api/usuarios`,
     );
     usuarios.value = resp.data;
   } catch (e) {
@@ -1263,17 +1262,15 @@ function setTab(tab) {
     .catch(() => {});
 }
 
-// keep currentTab in sync if user navigates history / query changes
 watch(
   () => route.query && route.query.tab,
   (newTab) => {
     if (newTab && typeof newTab === "string" && validTabs.includes(newTab)) {
       currentTab.value = newTab;
     }
-  }
+  },
 );
 
-// ensure URL updates when currentTab is changed programmatically
 watch(currentTab, (tab) => {
   if (!tab) return;
   if ((route.query && route.query.tab) === tab) return;
@@ -1286,13 +1283,11 @@ watch(currentTab, (tab) => {
     .catch(() => {});
 });
 
-// initialize from route query and load data
 onMounted(() => {
   const qTab = (route.query && route.query.tab) || null;
   if (qTab && typeof qTab === "string" && validTabs.includes(qTab)) {
     currentTab.value = qTab;
   } else {
-    // ensure URL contains default tab
     router
       .replace({
         name: route.name,
@@ -1310,7 +1305,7 @@ function novaCampanha() {
     categoria: "",
     metaFinanceira: 0,
     dataTermino: formatarDataInput(
-      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     ),
     imagemCapa: "",
     descricao: "",
@@ -1389,7 +1384,7 @@ async function salvarCampanha() {
     const form = new FormData();
     form.append(
       "campanha",
-      new Blob([campanhaPayload], { type: "application/json" })
+      new Blob([campanhaPayload], { type: "application/json" }),
     );
     if (campanhaImagemFile.value) {
       form.append("imagem", campanhaImagemFile.value);
@@ -1399,12 +1394,12 @@ async function salvarCampanha() {
       await axios.put(
         `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanhaSelecionada.id}`,
         form,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
     } else {
       await axios.post(
         `${process.env.VUE_APP_API_BASE_URL}/api/campanhas`,
-        form
+        form,
       );
     }
 
@@ -1414,7 +1409,7 @@ async function salvarCampanha() {
     alert(
       campanhaSelecionada.id
         ? "Campanha atualizada com sucesso!"
-        : "Campanha criada com sucesso!"
+        : "Campanha criada com sucesso!",
     );
   } catch (error) {
     console.error("Erro ao salvar campanha:", error);
@@ -1430,7 +1425,7 @@ async function excluirCampanha(campanha) {
   ) {
     try {
       await axios.delete(
-        `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanha.id}`
+        `${process.env.VUE_APP_API_BASE_URL}/api/campanhas/${campanha.id}`,
       );
 
       await carregarCampanhas();
@@ -1475,7 +1470,7 @@ watch(
     if (!campanhaImagemFile.value) {
       campanhaImagemPreview.value = newUrl || "";
     }
-  }
+  },
 );
 
 onBeforeUnmount(() => {
@@ -1494,12 +1489,12 @@ async function confirmarDoacao(doacao) {
     confirm(
       `Confirmar doação de R$ ${formatarValor(doacao.valor)} para a campanha "${
         doacao.campanha.titulo
-      }"?`
+      }"?`,
     )
   ) {
     try {
       await axios.put(
-        `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/confirmar`
+        `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/confirmar`,
       );
 
       await carregarDoacoes();
@@ -1519,12 +1514,12 @@ async function cancelarDoacao(doacao) {
     confirm(
       `Cancelar doação de R$ ${formatarValor(doacao.valor)} para a campanha "${
         doacao.campanha.titulo
-      }"?`
+      }"?`,
     )
   ) {
     try {
       await axios.put(
-        `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/cancelar`
+        `${process.env.VUE_APP_API_BASE_URL}/api/doacoes/${doacao.id}/cancelar`,
       );
 
       await carregarDoacoes();
@@ -1544,10 +1539,10 @@ function verDoacao(doacao) {
     `Detalhes da Doação:\n\nCampanha: ${doacao.campanha.titulo}\nDoador: ${
       doacao.anonimo ? "Anônimo" : doacao.doador ? doacao.doador.nome : "N/A"
     }\nValor: R$ ${formatarValor(doacao.valor)}\nData: ${formatarData(
-      doacao.dataHora
+      doacao.dataHora,
     )}\nStatus: ${doacao.status}\nMensagem: ${
       doacao.mensagem || "Nenhuma mensagem"
-    }`
+    }`,
   );
 }
 
@@ -1574,12 +1569,12 @@ async function salvarAlocacao() {
     if (alocacaoSelecionada.id) {
       await axios.put(
         `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/${alocacaoSelecionada.id}`,
-        alocacaoSelecionada
+        alocacaoSelecionada,
       );
     } else {
       await axios.post(
         `${process.env.VUE_APP_API_BASE_URL}/api/transparencia`,
-        alocacaoSelecionada
+        alocacaoSelecionada,
       );
     }
 
@@ -1589,7 +1584,7 @@ async function salvarAlocacao() {
     alert(
       alocacaoSelecionada.id
         ? "Alocação atualizada com sucesso!"
-        : "Alocação criada com sucesso!"
+        : "Alocação criada com sucesso!",
     );
   } catch (error) {
     console.error("Erro ao salvar alocação:", error);
@@ -1606,20 +1601,20 @@ function verAlocacao(alocacao) {
     }\nDescrição: ${
       alocacao.descricaoAlocacao || "Nenhuma descrição"
     }\nValor: R$ ${formatarValor(alocacao.valorAlocado)}\nData: ${formatarData(
-      alocacao.dataAlocacao
-    )}\nResponsável: ${alocacao.responsavel.nome}`
+      alocacao.dataAlocacao,
+    )}\nResponsável: ${alocacao.responsavel.nome}`,
   );
 }
 
 async function excluirAlocacao(alocacao) {
   if (
     confirm(
-      `Tem certeza que deseja excluir a alocação "${alocacao.tituloAlocacao}"?`
+      `Tem certeza que deseja excluir a alocação "${alocacao.tituloAlocacao}"?`,
     )
   ) {
     try {
       await axios.delete(
-        `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/${alocacao.id}`
+        `${process.env.VUE_APP_API_BASE_URL}/api/transparencia/${alocacao.id}`,
       );
 
       await carregarAlocacoes();
@@ -1667,7 +1662,7 @@ async function salvarUsuario() {
         nome: usuarioSelecionado.nome,
         email: usuarioSelecionado.email,
         senha: usuarioSelecionado.senha,
-      }
+      },
     );
 
     await carregarUsuarios();
@@ -1687,8 +1682,8 @@ function verUsuario(usuario) {
     `Detalhes do Usuário:\n\nNome: ${usuario.nome}\nEmail: ${
       usuario.email
     }\nTipo: ${usuario.tipo}\nData de Cadastro: ${formatarData(
-      usuario.dataCadastro
-    )}\nStatus: ${usuario.ativo ? "Ativo" : "Inativo"}`
+      usuario.dataCadastro,
+    )}\nStatus: ${usuario.ativo ? "Ativo" : "Inativo"}`,
   );
 }
 
@@ -1702,7 +1697,7 @@ async function alterarStatus(usuario) {
         `${process.env.VUE_APP_API_BASE_URL}/api/usuarios/${usuario.id}/status`,
         {
           ativo: !usuario.ativo,
-        }
+        },
       );
 
       await carregarUsuarios();
@@ -1710,7 +1705,7 @@ async function alterarStatus(usuario) {
       alert(
         `Usuário ${
           novoStatus === "ativar" ? "ativado" : "inativado"
-        } com sucesso!`
+        } com sucesso!`,
       );
     } catch (error) {
       console.error(`Erro ao ${novoStatus} usuário:`, error);

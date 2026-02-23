@@ -31,7 +31,6 @@ public class ContatoController {
 
     @PostMapping("/enviar")
     public ResponseEntity<MensagemContato> enviarMensagem(@Valid @RequestBody MensagemContato mensagem) {
-        // basic validation
         if ((mensagem.getTitulo() == null || mensagem.getTitulo().isBlank()) &&
                 (mensagem.getDescricao() == null || mensagem.getDescricao().isBlank())) {
         	throw new MessageFeedbackException("Título ou descrição é obrigatório", HttpStatus.BAD_REQUEST);
@@ -43,12 +42,10 @@ public class ContatoController {
 
     @GetMapping("/emails")
     public ResponseEntity<List<String>> listarEmailsContato() {
-        // static list for now, could come from config
         List<String> emails = List.of("suporte@doacoes.local", "contato@doacoes.local", "financeiro@doacoes.local", "desenvolvimento@doacoes.local");
         return ResponseEntity.ok(emails);
     }
 
-    // Admin CRUD
     @GetMapping
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<List<MensagemContato>> listarTodas() {

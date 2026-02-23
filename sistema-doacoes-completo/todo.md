@@ -1,14 +1,14 @@
 # TODOs
 
 - [x] Configurar migrations com flyway
-- [ ] Remover comentarios
-- [ ] Adicionar reset de senha (talvez MFA)?
+- [x] Remover comentarios
+- [x] Adicionar reset de senha
 - [ ] Adicionar envio de emails (doação realizada/confirmada)
 - [ ] Notificar administradores que existem doações pendentes (talvez por email 1x por dia também)
 - [x] Configurar build para native image no backend
 - [x] Atualizar para java 17
-- [ ] Atualizar para vue
-- [ ] Atualiza projeto para usar vite como builder?
+- [ ] Atualizar versão do vue
+- [ ] Atualizar projeto para usar vite como builder?
 
 ## App
 
