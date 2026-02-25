@@ -1,0 +1,9 @@
+CREATE TABLE SESSION_TRANSFER_TOKENS (
+    id UUID PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    created_at TIMESTAMP(6) WITH TIME ZONE NOT NULL,
+    expires_at TIMESTAMP(6) WITH TIME ZONE NOT NULL,
+    used BOOLEAN,
+    target TEXT,
+    FOREIGN KEY (user_id) REFERENCES usuarios(id)
+);

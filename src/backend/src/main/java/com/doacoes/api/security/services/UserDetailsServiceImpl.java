@@ -34,4 +34,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public void save(Usuario user) {
 		usuarioRepository.save(user);
 	}
+
+	public Usuario getReferenceById(Long id) {
+		return usuarioRepository.getReferenceById(id);
+	}
 }
