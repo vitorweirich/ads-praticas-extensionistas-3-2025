@@ -12,6 +12,7 @@ import AdministracaoCampanhaView from "../views/AdministracaoCampanhaView.vue";
 import ContatoView from "../views/ContatoView.vue";
 import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ResetarSenhaView from "../views/ResetarSenhaView.vue";
+import SessionTransferView from "../views/SessionTransferView.vue";
 
 const routes = [
   {
@@ -38,6 +39,11 @@ const routes = [
     path: "/resetar-senha/:token",
     name: "resetar-senha",
     component: ResetarSenhaView,
+  },
+  {
+    path: "/session-transfer/:token",
+    name: "SessionTransfer",
+    component: SessionTransferView,
   },
   {
     path: "/portal",

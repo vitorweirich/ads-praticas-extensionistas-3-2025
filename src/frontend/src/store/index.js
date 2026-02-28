@@ -166,6 +166,45 @@ const store = createStore({
         resolve();
       });
     },
+
+    sessionExchange({ commit }, { transferToken }) {
+      return new Promise((resolve, reject) => {
+        commit("auth_request");
+
+        axios
+          .post(
+            `${process.env.VUE_APP_API_BASE_URL}/api/auth/session-exchange`,
+            { token: transferToken },
+          )
+          .then((resp) => {
+            const token = resp.data.accessToken;
+
+            const user = {
+              id: resp.data.id,
+              nome: resp.data.nome,
+              email: resp.data.email,
+              roles: resp.data.roles,
+            };
+
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+
+            localStorage.setItem("token", token);
+            localStorage.setItem("user", JSON.stringify(user));
+
+            axios.defaults.headers.common["Authorization"] = "Bearer " + token;
+
+            commit("auth_success", { token, user });
+
+            resolve(resp);
+          })
+          .catch((err) => {
+            commit("auth_error");
+            reject(err);
+          });
+      });
+    },
+
     forgotPassword(_, email) {
       return new Promise((resolve, reject) => {
         axios
