@@ -1,101 +1,145 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
+import { StyleSheet, View } from 'react-native';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView } from 'react-native';
+import CardCampanha from '../../components/CardCampanha';
+import { Campanha, getCampanhasDestaque } from '../../services/api';
 
 export default function HomeScreen() {
+  const [campanhas, setCampanhas] = useState<Campanha[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getCampanhasDestaque()
+      .then((data) => setCampanhas(data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    console.log('Campanhas em destaque atualizadas:', campanhas);
+  }, [campanhas]);
+
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }
+      headerBackgroundColor={{ light: '#f8f9fa', dark: '#1D3D47' }}
+      // headerImage={
+      //   <Image
+      //     source={require('@/assets/images/partial-react-logo.png')}
+      //     style={styles.reactLogo}
+      //   />
+      // }
     >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Potato!</ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see
-          changes. Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
+      <ThemedView style={styles.jumbotron}>
+        <ThemedText type="title" style={styles.title}>
+          Faça a diferença hoje
+        </ThemedText>
+        <ThemedText type="subtitle" style={styles.lead}>
+          Apoie campanhas de doação e ajude a transformar vidas em nossa comunidade.
+        </ThemedText>
+        <ThemedText style={styles.text}>
+          Conheça nossas campanhas ativas e descubra como você pode contribuir para um
+          mundo melhor.
         </ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction
-              title="Action"
-              icon="cube"
-              onPress={() => alert('Action pressed')}
-            />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a
-          fresh <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will
-          move the current <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
+      <View style={styles.cardsRow}>
+        <ThemedView style={styles.card}>
+          <ThemedText style={styles.icon}>🤲</ThemedText>
+          <ThemedText type="subtitle">Doe</ThemedText>
+          <ThemedText style={styles.text}>
+            Contribua com nossas campanhas e ajude quem mais precisa. Cada doação faz a
+            diferença.
+          </ThemedText>
+        </ThemedView>
+        <ThemedView style={styles.card}>
+          <ThemedText style={styles.icon}>💸</ThemedText>
+          <ThemedText type="subtitle">Transparência</ThemedText>
+          <ThemedText style={styles.text}>
+            Acompanhe como os recursos são utilizados. Nosso compromisso é com a
+            transparência total.
+          </ThemedText>
+        </ThemedView>
+        <ThemedView style={styles.card}>
+          <ThemedText style={styles.icon}>👥</ThemedText>
+          <ThemedText type="subtitle">Comunidade</ThemedText>
+          <ThemedText style={styles.text}>
+            Faça parte de uma comunidade que se importa e trabalha por um futuro melhor
+            para todos.
+          </ThemedText>
+        </ThemedView>
+      </View>
+
+      <View style={{ marginTop: 32 }}>
+        {(campanhas.length > 0 || loading) && (
+          <>
+            <ThemedText type="title" style={{ textAlign: 'center', marginBottom: 16 }}>
+              Campanhas em Destaque
+            </ThemedText>
+            {loading ? (
+              <ActivityIndicator
+                size="large"
+                color="#007bff"
+                style={{ marginVertical: 24 }}
+              />
+            ) : (
+              <ScrollView>
+                {campanhas.map((campanha, idx) => (
+                  <CardCampanha key={campanha.id || idx} campanha={campanha} />
+                ))}
+              </ScrollView>
+            )}
+          </>
+        )}
+      </View>
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  jumbotron: {
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 24,
+    marginBottom: 24,
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 8 },
+  lead: { fontSize: 18, marginBottom: 8, textAlign: 'center' },
+  text: { textAlign: 'center' },
+  cardsRow: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 16,
   },
+  card: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginHorizontal: 4,
+    elevation: 2,
+  },
+  icon: { fontSize: 36, marginBottom: 8 },
   reactLogo: {
     height: 178,
     width: 290,
     bottom: 0,
     left: 0,
     position: 'absolute',
+  },
+  campanhaCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 2,
   },
 });
