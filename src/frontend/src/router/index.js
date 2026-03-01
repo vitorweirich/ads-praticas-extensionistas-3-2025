@@ -19,6 +19,7 @@ const routes = [
     path: "/",
     name: "home",
     component: HomeView,
+    alias: "/app",
   },
   {
     path: "/login",
@@ -49,6 +50,7 @@ const routes = [
     path: "/portal",
     name: "portal",
     component: PortalView,
+    alias: "/app/portal",
   },
   {
     path: "/campanha/:id",
@@ -91,6 +93,7 @@ const routes = [
   {
     path: "/:pathMatch(.*)*",
     redirect: "/404",
+    name: "notResolved",
   },
 ];
 
@@ -102,18 +105,24 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const loggedIn = localStorage.getItem("user");
 
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!loggedIn) {
-      next({ path: "/login" });
-      return;
-    }
+  if (to.meta.requiresAuth && !loggedIn) {
+    return next("/login");
+  }
 
-    if (to.matched.some((record) => record.meta.requiresAdmin)) {
-      const user = JSON.parse(loggedIn);
-      if (!user.roles.includes("ROLE_ADMINISTRADOR")) {
-        next({ path: "/portal" });
-        return;
-      }
+  if (to.meta.requiresAdmin && loggedIn) {
+    const user = JSON.parse(loggedIn);
+    if (!user.roles.includes("ROLE_ADMINISTRADOR")) {
+      return next("/portal");
+    }
+  }
+
+  const appPath = "/app" + to.fullPath;
+
+  if (!loggedIn && !to.path.startsWith("/app")) {
+    const resolved = router.resolve(appPath);
+
+    if (resolved.name && resolved.name !== "notResolved") {
+      return next(appPath);
     }
   }
 

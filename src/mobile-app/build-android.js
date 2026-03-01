@@ -7,6 +7,11 @@ function run(command, options = {}) {
   execSync(command, { stdio: 'inherit', ...options });
 }
 
+/*
+  Pegar fingerprint da chave de assinatura (a pasta android/app): 
+  keytool -list -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android
+*/
+
 try {
   console.log('🚀 Iniciando build Android...');
 
